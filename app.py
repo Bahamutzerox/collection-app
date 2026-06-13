@@ -56,33 +56,39 @@ def check_password():
 if not check_password():
     st.stop()
 
-# ── Data layer: read local CSV, write back to the private GitHub repo ──────────
+# ── Data layer: read & write CSVs in the private "data" GitHub repo via API ────
 @st.cache_resource
-def get_repo():
+def get_data_repo():
     from github import Github, Auth
     gh = Github(auth=Auth.Token(st.secrets['github_token']))
-    return gh.get_repo(st.secrets['github_repo'])   # "owner/repo"
+    return gh.get_repo(st.secrets['data_repo'])     # "owner/data-repo"
 
-def _local(name):
-    return os.path.join(BASE_DIR, CSV_PATH[name])
+@st.cache_data(ttl=300)
+def _read_csv_text(name):
+    """Fetch a CSV's text via the git blob API (works for files of any size)."""
+    import base64
+    repo = get_data_repo()
+    c = repo.get_contents(CSV_PATH[name])           # metadata + blob sha
+    blob = repo.get_git_blob(c.sha)
+    return base64.b64decode(blob.content).decode('utf-8')
 
 def _raw_df(name):
     """Read a CSV as all-string (empty cells stay '')."""
-    return pd.read_csv(_local(name), dtype=str, keep_default_na=False)
+    import io
+    return pd.read_csv(io.StringIO(_read_csv_text(name)), dtype=str, keep_default_na=False)
 
 def _read_df(name):
     """Read a CSV; empty cells -> NA (matches the old openpyxl None behaviour)."""
     return _raw_df(name).replace('', pd.NA)
 
 def _commit_df(name, df, message):
-    """Write the DataFrame to the local CSV and push it back to GitHub."""
+    """Push the DataFrame back to the data repo as CSV, then bust the read cache."""
     csv_text = df.fillna('').astype(str).to_csv(index=False)
-    with open(_local(name), 'w', encoding='utf-8') as f:
-        f.write(csv_text)
-    repo = get_repo()
+    repo = get_data_repo()
     gh_path = CSV_PATH[name]
     cur = repo.get_contents(gh_path)
     repo.update_file(gh_path, message, csv_text, cur.sha)
+    _read_csv_text.clear()
 
 def split_locality(full):
     """Split a locality string on commas that sit OUTSIDE parentheses."""

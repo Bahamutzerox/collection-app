@@ -3,6 +3,9 @@
 service_account*.json
 *credentials*.json
 
+# 資料放「資料 repo」，不進程式 repo
+data/
+
 # 原始資料備份留本機
 *.xlsx
 
