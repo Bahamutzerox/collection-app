@@ -37,21 +37,28 @@ HABITS = ['', 'herb', 'shrub', 'tree', 'liana', 'epiphyte',
           'aquatic', 'fern', 'moss', 'grass', 'palm',
           'bamboo', 'vine', 'annual', 'biennial', 'perennial']
 
-st.set_page_config(page_title='標本採集記錄', page_icon='🌿', layout='wide')
+st.set_page_config(page_title='標本採集記錄', layout='wide')
 
 # ── Theme (dark terminal / grid, accent #9dbfcc) ──────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+/* pixel font (Traditional-Chinese-capable) — used for titles only */
+@font-face{
+  font-family:'Zpix';
+  src:url('https://cdn.jsdelivr.net/gh/SolidZORO/zpix-pixel-font/dist/Zpix.ttf') format('truetype');
+  font-display:swap;
+}
 
 :root{
   --acc:#9dbfcc; --acc-bright:#c8e0ea; --acc-dim:rgba(157,191,204,.32);
   --bg:#0b0f14; --panel:#131a22; --txt:#d4dee3; --muted:#7d909a;
+  --pixel:'Zpix', monospace;
+  --sans:-apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Helvetica Neue', Arial, sans-serif;
 }
 
-/* base + grid background */
+/* base font: clean sans-serif everywhere (tables, inputs, body) */
 html, body, [class*="css"], .stApp, input, textarea, button, select {
-  font-family:'Share Tech Mono','PingFang TC','Microsoft JhengHei',monospace !important;
+  font-family:var(--sans) !important;
 }
 [data-testid="stAppViewContainer"]{
   background-color:var(--bg);
@@ -63,17 +70,19 @@ html, body, [class*="css"], .stApp, input, textarea, button, select {
 [data-testid="stHeader"]{ background:transparent; }
 .block-container{ padding-top:1.6rem; }
 
-/* headings — accent, uppercase latin, left pixel bar + glow */
-h1,h2,h3{ color:var(--acc) !important; letter-spacing:.06em; }
-h1{ text-shadow:0 0 14px rgba(157,191,204,.35); position:relative; padding-left:.6rem; }
+/* headings (大小標題) — pixel font, accent, left pixel bar + glow */
+h1,h2,h3{
+  font-family:var(--pixel) !important; color:var(--acc) !important;
+  letter-spacing:.04em; font-weight:400 !important;
+}
+h1{ text-shadow:0 0 14px rgba(157,191,204,.35); position:relative; padding-left:.7rem; line-height:1.35; }
 h1::before{
   content:""; position:absolute; left:-2px; top:.12em; bottom:.12em; width:6px;
   background:var(--acc); box-shadow:0 0 10px var(--acc);
 }
-.stApp h1, .stApp h2, .stApp h3{ font-weight:700; }
 
-/* section sub-labels (the **採集地點** etc.) */
-.stMarkdown strong{ color:var(--acc); letter-spacing:.04em; }
+/* section sub-labels (**採集地點** etc.) — pixel font too */
+.stMarkdown strong{ font-family:var(--pixel) !important; color:var(--acc); letter-spacing:.02em; }
 
 /* field labels */
 label, .stTextInput label, .stSelectbox label, .stNumberInput label, .stTextArea label{
@@ -95,7 +104,7 @@ input, textarea,
 /* buttons — terminal outline; primary = filled */
 .stButton > button, .stFormSubmitButton > button{
   background:transparent; color:var(--acc); border:1px solid var(--acc);
-  border-radius:3px; letter-spacing:.05em; text-transform:uppercase; font-weight:700;
+  border-radius:3px; font-weight:600;
   transition:all .12s ease;
 }
 .stButton > button:hover, .stFormSubmitButton > button:hover{
@@ -132,7 +141,7 @@ code{ color:var(--acc) !important; background:rgba(157,191,204,.08) !important; 
 def check_password():
     if st.session_state.get('auth_ok'):
         return True
-    st.title('🔒 標本採集記錄')
+    st.title('標本採集記錄')
     pw = st.text_input('請輸入密碼', type='password')
     if pw:
         if pw == st.secrets.get('app_password'):
@@ -454,10 +463,10 @@ def upsert_locality(short: str, full: str):
 
 edit_mode = st.session_state.get('edit_row') is not None
 if edit_mode:
-    st.title('✏️ 編輯記錄')
+    st.title('編輯記錄')
     st.info(f'正在編輯第 {st.session_state.edit_row} 列；修改後按「儲存修改」寫回，或按「取消編輯」放棄。')
 else:
-    st.title('🌿 標本採集記錄輸入')
+    st.title('標本採集記錄輸入')
 
 # ── Coll. No. ─────────────────────────────────────────────────────────────────
 c1, _ = st.columns([1, 3])
@@ -476,7 +485,7 @@ loc_short = (st.selectbox('地名簡稱', loc_names,
 sync_locality_field()  # reactive: runs right after short-name selection
 
 if st.session_state.get('is_new_loc'):
-    st.markdown('<span class="new-badge">✦ 新地名 — 填地點英文、選縣市 / 鄉鎮（無英文者可補），送出後自動加入清單</span>',
+    st.markdown('<span class="new-badge">新地名 — 填地點英文、選縣市 / 鄉鎮（無英文者可補），送出後自動加入清單</span>',
                 unsafe_allow_html=True)
 
     def has_en(s):
@@ -529,7 +538,7 @@ sci_name = (st.selectbox('Scientific Name', sp_names,
 sync_species_fields()  # reactive: runs right after sci selection
 
 if st.session_state.is_new_species:
-    st.markdown('<span class="new-badge">✦ 新學名 — 請填入科名和中文名，送出後自動加入清單</span>',
+    st.markdown('<span class="new-badge">新學名 — 請填入科名和中文名，送出後自動加入清單</span>',
                 unsafe_allow_html=True)
 
 sc1, sc2, sc3 = st.columns(3)
@@ -589,10 +598,10 @@ st.divider()
 note = st.text_area('Note', placeholder='備註（可留空）', height=80, key=f'note_{fk}')
 
 # ── Submit ────────────────────────────────────────────────────────────────────
-submit = st.button('💾 儲存修改' if edit_mode else '✅ 新增記錄',
+submit = st.button('儲存修改' if edit_mode else '新增記錄',
                    type='primary', use_container_width=True)
 if edit_mode:
-    if st.button('✖ 取消編輯', use_container_width=True):
+    if st.button('取消編輯', use_container_width=True):
         exit_edit_mode()
         st.rerun()
 
@@ -632,7 +641,7 @@ if submit:
         if edit_mode:
             update_record(st.session_state.edit_row, values)
             st.cache_data.clear()
-            st.success(f'💾 已儲存修改：#{int(coll_no)} {sci_name}　{date_str}')
+            st.success(f'已儲存修改：#{int(coll_no)} {sci_name}　{date_str}')
             exit_edit_mode()
             st.rerun()
         else:
@@ -648,12 +657,12 @@ if submit:
             if is_new: notes.append('新學名已加入物種清單')
             if is_new_loc: notes.append('新地名已加入地名清單')
             label = '；'.join(notes) if notes else '已新增'
-            st.success(f'✅ {label}：#{int(coll_no)} *{sci_name}*　@　{loc_short}　{date_str}')
+            st.success(f'{label}：#{int(coll_no)} *{sci_name}*　@　{loc_short}　{date_str}')
             st.balloons()
 
 # ── Records: search & delete ──────────────────────────────────────────────────
 st.divider()
-st.subheader('📋 記錄查詢 / 刪除')
+st.subheader('記錄查詢 / 刪除')
 
 try:
     records = load_all_records()
@@ -661,7 +670,7 @@ try:
                  'Locality and habitat description', 'Date', 'Collector']
     existing_cols = [c for c in show_cols if c in records.columns]
 
-    query = st.text_input('🔍 搜尋（學名 / 中文名 / 科名 / 地點 / 採集人 / 編號，可多關鍵字以空格分隔）',
+    query = st.text_input('搜尋（學名 / 中文名 / 科名 / 地點 / 採集人 / 編號，可多關鍵字以空格分隔）',
                           key='record_search').strip()
 
     if query:
@@ -680,7 +689,7 @@ try:
     result_rev = result.iloc[::-1].reset_index(drop=True)
     display = result_rev[disp_cols].fillna('').astype(str).replace('nan', '')
 
-    st.caption('👉 點選表格左側即可選取一列，下方會出現刪除按鈕')
+    st.caption('點選表格左側即可選取一列，下方會出現刪除按鈕')
     event = st.dataframe(
         display, hide_index=True, key='rec_table',
         on_select='rerun', selection_mode='single-row',
@@ -705,11 +714,11 @@ try:
 
         be, bd = st.columns(2)
         with be:
-            if st.button(f'✏️ 編輯此筆（帶到上方表單）', use_container_width=True):
+            if st.button(f'編輯此筆（帶到上方表單）', use_container_width=True):
                 enter_edit_mode(row)
                 st.rerun()
         with bd:
-            if st.button(f'🗑 刪除此筆', type='secondary', use_container_width=True):
+            if st.button(f'刪除此筆', type='secondary', use_container_width=True):
                 delete_record(excel_row)
                 st.cache_data.clear()
                 st.success(f'已刪除：{label}')
