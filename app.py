@@ -1,18 +1,23 @@
 import streamlit as st
 import pandas as pd
-import gspread
-from google.oauth2.service_account import Credentials
 from datetime import datetime
 import os
 import re
 
-AREA_PATH = os.path.join(os.path.dirname(__file__), '台灣各行政區列表.py')
+BASE_DIR = os.path.dirname(__file__)
+AREA_PATH = os.path.join(BASE_DIR, '台灣各行政區列表.py')
 
-# Worksheet names in the Google Sheet (mirror the original Excel tabs)
+# Data lives as CSV files in the repo under data/ (mirror the original Excel tabs).
 WS_RECORDS = '採集記錄'
 WS_SPECIES = '物種清單'
 WS_LOCALITY = '地名清單'
 WS_COLLECTOR = '採集人清單'
+CSV_PATH = {
+    WS_RECORDS:  'data/採集記錄.csv',
+    WS_SPECIES:  'data/物種清單.csv',
+    WS_LOCALITY: 'data/地名清單.csv',
+    WS_COLLECTOR:'data/採集人清單.csv',
+}
 
 def _load_area_data():
     """Complete Taiwan county→township list (Chinese only)."""
@@ -51,26 +56,33 @@ def check_password():
 if not check_password():
     st.stop()
 
-# ── Google Sheets connection ──────────────────────────────────────────────────
+# ── Data layer: read local CSV, write back to the private GitHub repo ──────────
 @st.cache_resource
-def get_book():
-    creds = Credentials.from_service_account_info(
-        st.secrets['gcp_service_account'],
-        scopes=['https://www.googleapis.com/auth/spreadsheets'])
-    return gspread.authorize(creds).open_by_key(st.secrets['sheet_id'])
+def get_repo():
+    from github import Github, Auth
+    gh = Github(auth=Auth.Token(st.secrets['github_token']))
+    return gh.get_repo(st.secrets['github_repo'])   # "owner/repo"
 
-def _ws(name):
-    return get_book().worksheet(name)
+def _local(name):
+    return os.path.join(BASE_DIR, CSV_PATH[name])
+
+def _raw_df(name):
+    """Read a CSV as all-string (empty cells stay '')."""
+    return pd.read_csv(_local(name), dtype=str, keep_default_na=False)
 
 def _read_df(name):
-    """Read a worksheet into a DataFrame; empty cells -> NA (matches old openpyxl None)."""
-    rows = _ws(name).get_all_values()
-    if not rows:
-        return pd.DataFrame()
-    header = rows[0]
-    w = len(header)
-    data = [(r + [''] * w)[:w] for r in rows[1:]]   # pad/truncate to header width
-    return pd.DataFrame(data, columns=header).replace('', pd.NA)
+    """Read a CSV; empty cells -> NA (matches the old openpyxl None behaviour)."""
+    return _raw_df(name).replace('', pd.NA)
+
+def _commit_df(name, df, message):
+    """Write the DataFrame to the local CSV and push it back to GitHub."""
+    csv_text = df.fillna('').astype(str).to_csv(index=False)
+    with open(_local(name), 'w', encoding='utf-8') as f:
+        f.write(csv_text)
+    repo = get_repo()
+    gh_path = CSV_PATH[name]
+    cur = repo.get_contents(gh_path)
+    repo.update_file(gh_path, message, csv_text, cur.sha)
 
 def split_locality(full):
     """Split a locality string on commas that sit OUTSIDE parentheses."""
@@ -165,11 +177,11 @@ def load_lookups():
     return sp_dict, loc_dict, collectors, last_no, families, counties, tw_by_county
 
 def load_all_records():
-    """All records with their sheet row numbers (for edit/delete)."""
+    """All records with a 0-based positional id (_row) used for edit/delete."""
     df = _read_df(WS_RECORDS)
     if df.empty:
         return df
-    df.insert(0, '_row', range(2, len(df) + 2))  # header is row 1; data from row 2
+    df.insert(0, '_row', range(len(df)))
     if 'Coll. No.' in df.columns:
         def _fmt_no(v):
             if pd.isna(v):
@@ -183,13 +195,16 @@ RECORD_COLS = ['Coll. No.', 'Family', 'Scientific Name', 'Common Name',
                'Locality and habitat description', 'Habit',
                'GPSN', 'GPSE', 'Altitude', 'Date', 'Collector', 'Identifier', 'Note']
 
-def delete_record(sheet_row: int):
-    _ws(WS_RECORDS).delete_rows(sheet_row)
+def delete_record(idx: int):
+    df = _raw_df(WS_RECORDS).drop(index=idx).reset_index(drop=True)
+    _commit_df(WS_RECORDS, df, f'delete record (row {idx})')
 
-def update_record(sheet_row: int, values: dict):
-    row = [values.get(col, '') for col in RECORD_COLS]
-    _ws(WS_RECORDS).update(range_name=f'A{sheet_row}:M{sheet_row}',
-                           values=[row], value_input_option='USER_ENTERED')
+def update_record(idx: int, values: dict):
+    df = _raw_df(WS_RECORDS)
+    for col in RECORD_COLS:
+        if col in df.columns and col in values:
+            df.loc[idx, col] = str(values.get(col, ''))
+    _commit_df(WS_RECORDS, df, f"edit record #{values.get('Coll. No.', '')}")
 
 sp_dict, loc_dict, collectors, last_no, families, counties, tw_by_county = load_lookups()
 loc_names = sorted(loc_dict.keys())
@@ -312,30 +327,35 @@ def exit_edit_mode():
 
 # ── Write helpers ─────────────────────────────────────────────────────────────
 def append_record(values: dict):
-    row = [values.get(col, '') for col in RECORD_COLS]
-    _ws(WS_RECORDS).append_row(row, value_input_option='USER_ENTERED')
+    df = _raw_df(WS_RECORDS)
+    df.loc[len(df)] = [str(values.get(col, '')) for col in df.columns]
+    _commit_df(WS_RECORDS, df, f"add record #{values.get('Coll. No.', '')}")
 
 def upsert_species(sci: str, common: str, family: str):
     """Add or update a species in 物種清單."""
-    ws = _ws(WS_SPECIES)
-    vals = ws.get_all_values()
-    for i, r in enumerate(vals[1:], start=2):   # i = sheet row number
-        if r and r[0] == sci:
-            if common:
-                ws.update_cell(i, 2, common)
-            if family:
-                ws.update_cell(i, 3, family)
-            return
-    ws.append_row([sci, common, family], value_input_option='USER_ENTERED')
+    df = _raw_df(WS_SPECIES)
+    hit = df.index[df['Scientific Name'] == sci]
+    if len(hit):
+        i = hit[0]
+        if common:
+            df.loc[i, 'Common Name'] = common
+        if family:
+            df.loc[i, 'Family'] = family
+    else:
+        row = {c: '' for c in df.columns}
+        row.update({'Scientific Name': sci, 'Common Name': common, 'Family': family})
+        df.loc[len(df)] = [row.get(c, '') for c in df.columns]
+    _commit_df(WS_SPECIES, df, f'upsert species {sci}')
 
 def upsert_locality(short: str, full: str):
     """Add a new locality to 地名清單 if the short name isn't present yet."""
-    ws = _ws(WS_LOCALITY)
-    vals = ws.get_all_values()
-    for r in vals[1:]:
-        if r and r[0] == short:
-            return  # already exists
-    ws.append_row([short, full], value_input_option='USER_ENTERED')
+    df = _raw_df(WS_LOCALITY)
+    if (df['簡稱'] == short).any():
+        return  # already exists
+    row = {c: '' for c in df.columns}
+    row.update({'簡稱': short, '完整地名': full})
+    df.loc[len(df)] = [row.get(c, '') for c in df.columns]
+    _commit_df(WS_LOCALITY, df, f'add locality {short}')
 
 # ── Styles ────────────────────────────────────────────────────────────────────
 st.markdown("""
