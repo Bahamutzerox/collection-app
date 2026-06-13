@@ -39,6 +39,95 @@ HABITS = ['', 'herb', 'shrub', 'tree', 'liana', 'epiphyte',
 
 st.set_page_config(page_title='標本採集記錄', page_icon='🌿', layout='wide')
 
+# ── Theme (dark terminal / grid, accent #9dbfcc) ──────────────────────────────
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+:root{
+  --acc:#9dbfcc; --acc-bright:#c8e0ea; --acc-dim:rgba(157,191,204,.32);
+  --bg:#0b0f14; --panel:#131a22; --txt:#d4dee3; --muted:#7d909a;
+}
+
+/* base + grid background */
+html, body, [class*="css"], .stApp, input, textarea, button, select {
+  font-family:'Share Tech Mono','PingFang TC','Microsoft JhengHei',monospace !important;
+}
+[data-testid="stAppViewContainer"]{
+  background-color:var(--bg);
+  background-image:
+    linear-gradient(rgba(157,191,204,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(157,191,204,.05) 1px, transparent 1px);
+  background-size:26px 26px;
+}
+[data-testid="stHeader"]{ background:transparent; }
+.block-container{ padding-top:1.6rem; }
+
+/* headings — accent, uppercase latin, left pixel bar + glow */
+h1,h2,h3{ color:var(--acc) !important; letter-spacing:.06em; }
+h1{ text-shadow:0 0 14px rgba(157,191,204,.35); position:relative; padding-left:.6rem; }
+h1::before{
+  content:""; position:absolute; left:-2px; top:.12em; bottom:.12em; width:6px;
+  background:var(--acc); box-shadow:0 0 10px var(--acc);
+}
+.stApp h1, .stApp h2, .stApp h3{ font-weight:700; }
+
+/* section sub-labels (the **採集地點** etc.) */
+.stMarkdown strong{ color:var(--acc); letter-spacing:.04em; }
+
+/* field labels */
+label, .stTextInput label, .stSelectbox label, .stNumberInput label, .stTextArea label{
+  color:var(--muted) !important; font-size:.82rem !important; letter-spacing:.03em;
+}
+
+/* inputs / selects — dark panel, accent border, glow on focus */
+input, textarea,
+[data-baseweb="input"], [data-baseweb="select"] > div, [data-baseweb="textarea"]{
+  background-color:var(--panel) !important;
+  border:1px solid var(--acc-dim) !important; border-radius:3px !important;
+  color:var(--txt) !important;
+}
+[data-baseweb="input"]:focus-within, [data-baseweb="select"] > div:focus-within{
+  border-color:var(--acc) !important; box-shadow:0 0 0 1px var(--acc),0 0 10px rgba(157,191,204,.25) !important;
+}
+[data-testid="stNumberInput"] button{ border-color:var(--acc-dim) !important; color:var(--acc) !important; }
+
+/* buttons — terminal outline; primary = filled */
+.stButton > button, .stFormSubmitButton > button{
+  background:transparent; color:var(--acc); border:1px solid var(--acc);
+  border-radius:3px; letter-spacing:.05em; text-transform:uppercase; font-weight:700;
+  transition:all .12s ease;
+}
+.stButton > button:hover, .stFormSubmitButton > button:hover{
+  background:var(--acc); color:var(--bg); box-shadow:0 0 14px rgba(157,191,204,.4);
+}
+button[kind="primary"], .stButton > button[kind="primary"], .stFormSubmitButton > button[kind="primary"]{
+  background:var(--acc); color:var(--bg); border:1px solid var(--acc);
+}
+button[kind="primary"]:hover{ background:var(--acc-bright); border-color:var(--acc-bright); }
+
+/* dividers */
+hr, [data-testid="stDivider"]{ border-color:var(--acc-dim) !important; }
+
+/* captions / code-ish previews */
+.stCaption, [data-testid="stCaptionContainer"]{ color:var(--muted) !important; }
+code{ color:var(--acc) !important; background:rgba(157,191,204,.08) !important; }
+
+/* records table */
+[data-testid="stDataFrame"]{ border:1px solid var(--acc-dim); border-radius:4px; }
+[data-testid="stDataFrame"] thead tr th{ color:var(--acc) !important; }
+
+/* new-item badge — dark with accent */
+.new-badge{
+  display:inline-block; background:rgba(157,191,204,.10); color:var(--acc);
+  border:1px solid var(--acc-dim); border-radius:3px;
+  padding:2px 8px; font-size:.78rem; font-weight:700; margin-bottom:6px; letter-spacing:.03em;
+}
+/* info / success boxes tinted toward accent */
+[data-testid="stAlert"]{ border:1px solid var(--acc-dim); }
+</style>
+""", unsafe_allow_html=True)
+
 # ── Password gate ─────────────────────────────────────────────────────────────
 def check_password():
     if st.session_state.get('auth_ok'):
@@ -362,21 +451,6 @@ def upsert_locality(short: str, full: str):
     row.update({'簡稱': short, '完整地名': full})
     df.loc[len(df)] = [row.get(c, '') for c in df.columns]
     _commit_df(WS_LOCALITY, df, f'add locality {short}')
-
-# ── Styles ────────────────────────────────────────────────────────────────────
-st.markdown("""
-<style>
-    .block-container { padding-top: 1.5rem; }
-    .stTextInput label, .stSelectbox label, .stNumberInput label, .stTextArea label {
-        font-weight: 600; font-size: 0.85rem;
-    }
-    .new-badge {
-        display: inline-block; background: #FFF3CD; color: #856404;
-        border: 1px solid #FFEEBA; border-radius: 4px;
-        padding: 2px 8px; font-size: 0.78rem; font-weight: 600; margin-bottom: 6px;
-    }
-</style>
-""", unsafe_allow_html=True)
 
 edit_mode = st.session_state.get('edit_row') is not None
 if edit_mode:
