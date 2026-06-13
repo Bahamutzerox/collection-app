@@ -1,0 +1,15 @@
+# 機密 — 絕對不可進 repo
+.streamlit/secrets.toml
+service_account*.json
+*credentials*.json
+
+# 原始資料備份留本機
+*.xlsx
+
+# 雜項
+.DS_Store
+__pycache__/
+*.pyc
+.venv/
+venv/
+.claude/
