@@ -81,25 +81,35 @@ h1::before{
   background:var(--acc); box-shadow:0 0 10px var(--acc);
 }
 
-/* section sub-labels (**採集地點** etc.) — pixel font too */
-.stMarkdown strong{ font-family:var(--pixel) !important; color:var(--acc); letter-spacing:.02em; }
+/* section sub-labels (**採集地點** etc.) — pixel font, larger & bolder */
+.stMarkdown strong{
+  font-family:var(--pixel) !important; color:var(--acc);
+  font-size:1.32rem; letter-spacing:.03em; line-height:1.6;
+  -webkit-text-stroke:.7px var(--acc);          /* fake-bold for bitmap font */
+  text-shadow:0 0 8px rgba(157,191,204,.3);
+}
 
 /* field labels */
 label, .stTextInput label, .stSelectbox label, .stNumberInput label, .stTextArea label{
   color:var(--muted) !important; font-size:.82rem !important; letter-spacing:.03em;
 }
 
-/* inputs / selects — dark panel, accent border, glow on focus */
+/* inputs / selects — chunky pixel-style border (thick, square, hard focus) */
 input, textarea,
-[data-baseweb="input"], [data-baseweb="select"] > div, [data-baseweb="textarea"]{
+[data-baseweb="input"], [data-baseweb="select"] > div, [data-baseweb="textarea"],
+[data-testid="stNumberInputContainer"]{
   background-color:var(--panel) !important;
-  border:1px solid var(--acc-dim) !important; border-radius:3px !important;
+  border:2px solid var(--acc-dim) !important; border-radius:0 !important;
   color:var(--txt) !important;
 }
-[data-baseweb="input"]:focus-within, [data-baseweb="select"] > div:focus-within{
-  border-color:var(--acc) !important; box-shadow:0 0 0 1px var(--acc),0 0 10px rgba(157,191,204,.25) !important;
+[data-baseweb="input"]:focus-within, [data-baseweb="select"] > div:focus-within,
+[data-baseweb="textarea"]:focus-within{
+  border-color:var(--acc) !important;
+  box-shadow:0 0 0 2px var(--acc) !important;     /* hard pixel outline, no blur */
 }
-[data-testid="stNumberInput"] button{ border-color:var(--acc-dim) !important; color:var(--acc) !important; }
+[data-testid="stNumberInput"] button{
+  border:2px solid var(--acc-dim) !important; border-radius:0 !important; color:var(--acc) !important;
+}
 
 /* buttons — terminal outline; primary = filled */
 .stButton > button, .stFormSubmitButton > button{
