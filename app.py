@@ -39,11 +39,10 @@ HABITS = ['', 'herb', 'shrub', 'tree', 'liana', 'epiphyte',
 
 st.set_page_config(page_title='標本採集記錄', layout='wide')
 
-# ── Theme (dark terminal / grid, accent #9dbfcc) ──────────────────────────────
+# ── Theme (Pixel Arcade Design System) ───────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;700&display=swap');
-/* Zpix pixel font (Traditional-Chinese capable) — titles only */
 @font-face{
   font-family:'Zpix';
   src:url('https://cdn.jsdelivr.net/gh/SolidZORO/zpix-pixel-font/dist/Zpix.ttf') format('truetype');
@@ -51,121 +50,560 @@ st.markdown("""
 }
 
 :root{
-  /* Pixel Arcade: slate = display/headings, green = action */
-  --acc:#9dbfcc; --acc-bright:#c8e0ea; --acc-dim:rgba(157,191,204,.32); --acc-glow:rgba(157,191,204,.35);
-  --green:#34f06a; --green-bright:#7dffa6; --green-dim:rgba(52,240,106,.16); --green-glow:rgba(52,240,106,.45);
+  --void:#07090c; --bg:#0b0f14; --panel:#131a22; --panel-2:#1b2530; --panel-3:#233040;
+  --ink:#d4dee3; --ink-bright:#f3f8fa; --muted:#7d909a; --faint:#4f5e68;
+  --green:#34f06a; --green-bright:#7dffa6; --green-deep:#18a847;
+  --green-dim:rgba(52,240,106,.16); --green-faint:rgba(52,240,106,.07); --green-glow:rgba(52,240,106,.45);
+  --slate:#9dbfcc; --slate-bright:#c8e0ea;
+  --slate-dim:rgba(157,191,204,.16); --slate-faint:rgba(157,191,204,.06); --slate-glow:rgba(157,191,204,.35);
   --amber:#ffc83d; --amber-dim:rgba(255,200,61,.16);
   --red:#ff4d5e; --red-dim:rgba(255,77,94,.16);
-  --void:#07090c; --bg:#0b0f14; --panel:#131a22; --txt:#d4dee3; --muted:#7d909a; --faint:#4f5e68; --line-strong:#3a4856;
-  --pixel:'Zpix', monospace;
-  --mono:'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
-  --sans:-apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Helvetica Neue', Arial, sans-serif;
+  --cyan:#4de1ff; --cyan-dim:rgba(77,225,255,.16);
+  --magenta:#ff5cc8;
+  --line:#28323d; --line-strong:#3a4856;
+  --font-pixel:'Zpix','Press Start 2P',ui-monospace,monospace;
+  --font-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  --font-sans:-apple-system,BlinkMacSystemFont,'PingFang TC','Microsoft JhengHei','Helvetica Neue',Arial,sans-serif;
+  --glow-green:0 0 14px rgba(52,240,106,.45);
+  --glow-green-lg:0 0 28px rgba(52,240,106,.45);
+  --glow-slate:0 0 14px rgba(157,191,204,.35);
+  --glow-text:0 0 8px rgba(52,240,106,.45);
+  --glow-text-slate:0 0 8px rgba(157,191,204,.35);
+  --dur-fast:.12s; --ease-out:cubic-bezier(.2,.8,.2,1);
+  /* legacy */
+  --acc:var(--slate); --acc-bright:var(--slate-bright);
+  --acc-dim:var(--slate-dim); --acc-glow:var(--slate-glow);
+  --txt:var(--ink); --pixel:var(--font-pixel); --mono:var(--font-mono); --sans:var(--font-sans);
+  --acc-glow:var(--slate-glow); --green-glow:rgba(52,240,106,.45);
 }
 
-/* base font: clean sans-serif everywhere (tables, inputs, body) */
+/* ── Base ─────────────────────────────────────────────────────────────────── */
 html, body, [class*="css"], .stApp, input, textarea, button, select {
-  font-family:var(--sans) !important;
+  font-family: var(--font-sans) !important;
+  color: var(--ink);
 }
-[data-testid="stAppViewContainer"]{
-  background-color:var(--bg);
+/* CRT grid background — 40px matching the design */
+[data-testid="stAppViewContainer"] {
+  background-color: var(--bg) !important;
   background-image:
     linear-gradient(rgba(157,191,204,.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(157,191,204,.05) 1px, transparent 1px);
-  background-size:26px 26px;
+    linear-gradient(90deg,rgba(157,191,204,.05) 1px, transparent 1px) !important;
+  background-size: 40px 40px !important;
 }
-[data-testid="stHeader"]{ background:transparent; }
-.block-container{ padding-top:1.6rem; }
+[data-testid="stHeader"]  { background: transparent !important; border-bottom: none !important; }
+[data-testid="stToolbar"] { display: none !important; }
+.block-container { padding-top: 0 !important; max-width: 1160px !important; }
+/* hide Streamlit default footer */
+footer { visibility: hidden !important; }
 
-/* headings (大小標題) — pixel font, accent, left pixel bar + glow */
-h1,h2,h3{
-  font-family:var(--pixel) !important; color:var(--acc) !important;
-  letter-spacing:.04em; font-weight:400 !important;
+/* ── Panels — mimic the DS Panel component ───────────────────────────────── */
+[data-testid="stVerticalBlockBorderWrapper"] {
+  background: var(--panel) !important;
+  border-radius: 0 !important;
+  border: 2px solid var(--green) !important;
+  box-shadow: 5px 5px 0 rgba(7,9,12,.6), 0 0 18px rgba(52,240,106,.25) !important;
+  padding: 4px 4px 8px !important;
 }
-h1{ text-shadow:0 0 14px rgba(157,191,204,.35); position:relative; padding-left:.7rem; line-height:1.35; }
-h1::before{
-  content:""; position:absolute; left:-2px; top:.12em; bottom:.12em; width:6px;
-  background:var(--acc); box-shadow:0 0 10px var(--acc);
-}
-
-/* section sub-labels (**採集地點** etc.) — pixel font, larger & bolder */
-.stMarkdown strong{
-  font-family:var(--pixel) !important; color:var(--acc);
-  font-size:1.32rem; letter-spacing:.03em; line-height:1.6;
-  -webkit-text-stroke:.7px var(--acc);          /* fake-bold for bitmap font */
-  text-shadow:0 0 8px rgba(157,191,204,.3);
+[data-testid="stVerticalBlockBorderWrapper"]:last-of-type {
+  border-color: var(--slate) !important;
+  box-shadow: 5px 5px 0 rgba(7,9,12,.6), 0 0 14px rgba(157,191,204,.2) !important;
 }
 
-/* field labels */
-label, .stTextInput label, .stSelectbox label, .stNumberInput label, .stTextArea label{
-  color:var(--muted) !important; font-size:.82rem !important; letter-spacing:.03em;
+/* ── Field labels — mono uppercase ───────────────────────────────────────── */
+label,
+.stTextInput label, .stSelectbox label,
+.stNumberInput label, .stTextArea label {
+  color: var(--muted) !important;
+  font-size: 11px !important;
+  letter-spacing: .06em !important;
+  text-transform: uppercase !important;
+  font-family: var(--font-mono) !important;
 }
 
-/* inputs / selects — chunky square border; GREEN hard focus (action color) */
+/* ── Inputs / selects ────────────────────────────────────────────────────── */
 input, textarea,
-[data-baseweb="input"], [data-baseweb="select"] > div, [data-baseweb="textarea"],
-[data-testid="stNumberInputContainer"]{
-  background-color:var(--panel) !important;
-  border:2px solid var(--line-strong) !important; border-radius:0 !important;
-  color:var(--txt) !important;
+[data-baseweb="input"],
+[data-baseweb="select"] > div,
+[data-baseweb="textarea"],
+[data-testid="stNumberInputContainer"] {
+  background-color: var(--panel-2) !important;
+  border: 2px solid var(--line-strong) !important;
+  border-radius: 0 !important;
+  color: var(--ink) !important;
 }
-[data-baseweb="input"]:focus-within, [data-baseweb="select"] > div:focus-within,
-[data-baseweb="textarea"]:focus-within{
-  border-color:var(--green) !important;
-  box-shadow:0 0 0 2px var(--green), 0 0 14px var(--green-glow) !important;
+[data-baseweb="input"]:focus-within,
+[data-baseweb="select"] > div:focus-within,
+[data-baseweb="textarea"]:focus-within {
+  border-color: var(--green) !important;
+  box-shadow: 0 0 0 2px var(--green-dim), 0 0 14px rgba(52,240,106,.45) !important;
 }
-[data-testid="stNumberInput"] input{ font-family:var(--mono) !important; color:var(--green) !important; }
-[data-testid="stNumberInput"] button{
-  border:2px solid var(--line-strong) !important; border-radius:0 !important; color:var(--green) !important;
+[data-testid="stNumberInput"] input {
+  font-family: var(--font-mono) !important; color: var(--green) !important;
+}
+[data-testid="stNumberInput"] button {
+  border: 2px solid var(--line-strong) !important;
+  border-radius: 0 !important; color: var(--green) !important;
+}
+/* select dropdown background */
+[data-baseweb="popover"] { background: var(--panel-2) !important; border: 2px solid var(--line-strong) !important; }
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+.stButton > button, .stFormSubmitButton > button {
+  background: transparent !important;
+  color: var(--green) !important;
+  border: 2px solid var(--green) !important;
+  border-radius: 3px !important;
+  font-weight: 600 !important;
+  letter-spacing: .04em !important;
+  transition: all var(--dur-fast) var(--ease-out) !important;
+}
+.stButton > button:hover, .stFormSubmitButton > button:hover {
+  background: var(--green) !important;
+  color: var(--void) !important;
+  box-shadow: 5px 5px 0 rgba(7,9,12,.6), var(--glow-green) !important;
+}
+.stButton > button[kind="primary"], .stFormSubmitButton > button[kind="primary"] {
+  background: var(--green) !important;
+  color: var(--void) !important;
+  border-color: var(--green) !important;
+  box-shadow: 5px 5px 0 rgba(7,9,12,.6) !important;
+}
+.stButton > button[kind="primary"]:hover {
+  background: var(--green-bright) !important;
+  border-color: var(--green-bright) !important;
+  box-shadow: 5px 5px 0 rgba(7,9,12,.6), var(--glow-green-lg) !important;
+}
+.stButton > button[kind="secondary"] {
+  color: var(--red) !important; border-color: var(--red) !important;
+}
+.stButton > button[kind="secondary"]:hover {
+  background: var(--red) !important; color: var(--void) !important;
 }
 
-/* buttons — GREEN action color. outline default; primary filled; secondary=danger */
-.stButton > button, .stFormSubmitButton > button{
-  background:transparent; color:var(--green); border:2px solid var(--green);
-  border-radius:3px; font-weight:600; transition:all .12s ease;
-}
-.stButton > button:hover, .stFormSubmitButton > button:hover{
-  background:var(--green); color:var(--void); box-shadow:0 0 14px var(--green-glow);
-}
-button[kind="primary"], .stButton > button[kind="primary"], .stFormSubmitButton > button[kind="primary"]{
-  background:var(--green); color:var(--void); border:2px solid var(--green);
-}
-button[kind="primary"]:hover{ background:var(--green-bright); border-color:var(--green-bright); box-shadow:0 0 14px var(--green-glow); }
-button[kind="secondary"]{ color:var(--red) !important; border-color:var(--red) !important; }
-button[kind="secondary"]:hover{ background:var(--red) !important; color:var(--void) !important; box-shadow:0 0 14px var(--red-dim) !important; }
-
-/* dividers */
-hr, [data-testid="stDivider"]{ border-color:var(--acc-dim) !important; }
-
-/* captions / hints → mono; code previews → green mono (terminal readout) */
-.stCaption, [data-testid="stCaptionContainer"]{ color:var(--muted) !important; font-family:var(--mono) !important; }
-code{ color:var(--green) !important; background:var(--green-dim) !important; font-family:var(--mono) !important; }
-
-/* records table */
-[data-testid="stDataFrame"]{ border:2px solid var(--line-strong); border-radius:0; }
-[data-testid="stDataFrame"] thead tr th{ color:var(--acc) !important; }
-
-/* new-item badge → amber (signal: needs attention) */
-.new-badge{
-  display:inline-block; background:var(--amber-dim); color:var(--amber);
-  border:1px solid var(--amber); border-radius:2px;
-  padding:2px 8px; font-size:.78rem; font-weight:700; margin-bottom:6px; letter-spacing:.03em;
+/* ── Dividers ────────────────────────────────────────────────────────────── */
+hr, [data-testid="stDivider"] {
+  border-color: var(--line-strong) !important; margin: 10px 0 !important;
 }
 
-/* English mono subtitle under the main title */
-.app-subtitle{ font-family:var(--mono); font-size:12px; color:var(--muted);
-  letter-spacing:.12em; margin:-.3rem 0 .6rem .7rem; }
+/* ── Captions / code ─────────────────────────────────────────────────────── */
+.stCaption, [data-testid="stCaptionContainer"] {
+  color: var(--muted) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
+}
+code {
+  color: var(--green) !important;
+  background: var(--green-faint) !important;
+  font-family: var(--font-mono) !important;
+}
 
-/* login lock box + hint line */
-.login-lock{ display:inline-flex; align-items:center; justify-content:center;
-  width:60px; height:60px; margin-bottom:18px; border:2px solid var(--green);
-  border-radius:3px; color:var(--green); box-shadow:0 0 14px var(--green-glow); }
-.login-hint{ font-family:var(--mono); font-size:11px; color:var(--faint);
-  text-align:center; margin-top:16px; letter-spacing:.06em; }
+/* ── DataFrame table ─────────────────────────────────────────────────────── */
+[data-testid="stDataFrame"] {
+  border: 2px solid var(--line-strong) !important; border-radius: 0 !important;
+}
+[data-testid="stDataFrame"] thead tr th {
+  background: var(--panel-2) !important;
+  color: var(--green) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 11px !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+  border-bottom: 2px solid var(--green-dim) !important;
+}
+[data-testid="stDataFrame"] tbody tr:nth-child(odd) td {
+  background: var(--slate-faint) !important;
+}
+[data-testid="stDataFrame"] tbody tr:hover td {
+  background: var(--panel-3) !important;
+  cursor: pointer !important;
+}
 
-/* alerts */
-[data-testid="stAlert"]{ border:1px solid var(--line-strong); }
+/* ── Alerts ──────────────────────────────────────────────────────────────── */
+[data-testid="stAlert"] { border: 1px solid var(--line-strong) !important; }
+[data-testid="stAlert"][data-baseweb="notification"] {
+  background: var(--panel) !important;
+}
+
+/* ── New-item badge ──────────────────────────────────────────────────────── */
+.new-badge {
+  display: inline-block; background: var(--amber-dim); color: var(--amber);
+  border: 1px solid var(--amber); border-radius: 2px;
+  padding: 2px 8px; font-size: .78rem; font-weight: 700;
+  margin-bottom: 6px; letter-spacing: .03em;
+}
+
+/* ── Custom components ───────────────────────────────────────────────────── */
+.pix-header {
+  display: flex; align-items: center; gap: 16px;
+  padding: 14px 8px 18px;
+  border-bottom: 2px solid var(--line-strong);
+  background: linear-gradient(180deg,var(--panel) 0%,rgba(19,26,34,0) 100%);
+  margin-bottom: 20px;
+}
+.pix-header-bar {
+  width: 8px; height: 34px; background: var(--green);
+  box-shadow: var(--glow-green); flex-shrink: 0; display: inline-block;
+}
+.pix-header-title {
+  font-family: var(--font-pixel); font-size: 20px; color: var(--slate);
+  letter-spacing: .04em; text-shadow: var(--glow-text-slate); line-height: 1.2; display: block;
+}
+.pix-header-sub {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--muted); letter-spacing: .12em; display: block;
+}
+.pix-badge-online {
+  font-family: var(--font-mono); font-size: 11px; color: var(--green);
+  letter-spacing: .10em; border: 1px solid var(--green-dim); padding: 3px 10px;
+}
+.pix-badge-count {
+  font-family: var(--font-mono); font-size: 12px; color: var(--slate);
+  border: 1px solid var(--slate-dim); padding: 3px 10px; letter-spacing: .06em;
+}
+
+/* Panel titles (injected before container content) */
+.pix-panel-hdr {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--font-pixel); font-size: 13px; color: var(--green);
+  letter-spacing: .04em; text-shadow: var(--glow-text);
+  padding: 10px 12px 8px;
+  border-bottom: 1px solid var(--green-dim);
+  margin-bottom: 6px;
+}
+.pix-panel-hdr::before {
+  content: ""; display: inline-block;
+  width: 4px; height: 14px; background: var(--green); flex-shrink: 0;
+}
+.pix-panel-hdr.slate {
+  color: var(--slate); text-shadow: var(--glow-text-slate);
+  border-bottom-color: var(--slate-dim);
+}
+.pix-panel-hdr.slate::before { background: var(--slate); }
+.pix-panel-sub {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--muted); letter-spacing: .14em;
+  padding: 0 12px 10px;
+}
+
+/* Section labels */
+.pix-section {
+  display: flex; align-items: center; gap: 8px;
+  margin: 14px 0 8px;
+  font-family: var(--font-pixel); font-size: 15px; color: var(--slate);
+  letter-spacing: .03em; text-shadow: var(--glow-text-slate);
+}
+.pix-section-bar {
+  display: inline-block; width: 5px; height: 14px;
+  background: var(--slate); flex-shrink: 0;
+}
+.pix-section.green { color: var(--green); text-shadow: var(--glow-text); }
+.pix-section.green .pix-section-bar { background: var(--green); }
+
+/* Login */
+.login-lock {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 64px; height: 64px; margin-bottom: 22px;
+  border: 2px solid var(--green); border-radius: 0;
+  color: var(--green); box-shadow: var(--glow-green);
+}
+.login-title {
+  text-align: center;
+  font-family: var(--font-pixel) !important;
+  font-size: 20px; color: var(--ink-bright);
+  line-height: 2.2; margin: 16px 0 22px;
+}
+.login-hint {
+  font-family: var(--font-mono); font-size: 11px; color: var(--faint);
+  text-align: center; margin-top: 14px; letter-spacing: .06em;
+}
+/* login form — hide the container border */
+[data-testid="stForm"] {
+  border: none !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+/* login submit button — solid green block */
+[data-testid="stForm"] [data-testid="stFormSubmitButton"] button,
+[data-testid="stForm"] [data-testid="stFormSubmitButton"] button[kind="primary"] {
+  background: var(--green) !important;
+  color: var(--void) !important;
+  border: none !important;
+  border-radius: 0 !important;
+  font-weight: 700 !important;
+  letter-spacing: .08em !important;
+  font-size: 15px !important;
+  height: 48px !important;
+  box-shadow: none !important;
+}
+[data-testid="stForm"] [data-testid="stFormSubmitButton"] button:hover {
+  background: var(--green-bright) !important;
+  box-shadow: 0 0 24px rgba(52,240,106,.5) !important;
+}
 </style>
 """, unsafe_allow_html=True)
+
+# ── CRT background layers (flora + scanlines + vignette) ─────────────────────
+def _make_flora_html():
+    GLYPHS = {
+        'leaf': [
+            '.....#.....',
+            '....###....',
+            '...##+##...',
+            '..##+++##..',
+            '.##++#++##.',
+            '.##++#++##.',
+            '.##++#++##.',
+            '..##+#+##..',
+            '...##+##...',
+            '....#+#....',
+            '.....#.....',
+            '.....#.....',
+            '.....#.....',
+        ],
+        'flower': [
+            '...#...#...',
+            '..###.###..',
+            '..#######..',
+            '...#####...',
+            '.#########.',
+            '.##+++++##.',
+            '.#########.',
+            '...#####...',
+            '..#######..',
+            '..###.###..',
+            '...#...#...',
+        ],
+        'sprout': [
+            '.#.....#.',
+            '.##...##.',
+            '.#+#.#+#.',
+            '..#+#+#..',
+            '...###...',
+            '....#....',
+            '....#....',
+            '..#####..',
+            '.#######.',
+        ],
+        'specimen': [
+            '###########',
+            '#.........#',
+            '#...#.#...#',
+            '#..#####..#',
+            '#...###...#',
+            '#....#....#',
+            '#...###...#',
+            '#..#+#+#..#',
+            '#...#+#...#',
+            '#....#....#',
+            '#.........#',
+            '###########',
+        ],
+        'pencil': [
+            '......##+',
+            '.....##+.',
+            '....##+..',
+            '...##+...',
+            '..##+....',
+            '.##+.....',
+            '##+......',
+            '#+.......',
+            '+........',
+        ],
+        'pen': [
+            '..###..',
+            '..#+#..',
+            '..#+#..',
+            '..#+#..',
+            '.##+##.',
+            '.#+#+#.',
+            '.#+#+#.',
+            '..#+#..',
+            '..#+#..',
+            '...#...',
+        ],
+        'scissors': [
+            '.#.......#.',
+            '.##.....##.',
+            '..##...##..',
+            '...##.##...',
+            '....###....',
+            '....#.#....',
+            '...#...#...',
+            '..#+#.#+#..',
+            '..#+#.#+#..',
+            '...#...#...',
+            '....#.#....',
+        ],
+        'notebook': [
+            '.########.',
+            '+#++++++#+',
+            '.#++++++#.',
+            '+#++++++#+',
+            '.#------#.',
+            '+#++++++#+',
+            '.#------#.',
+            '+#++++++#+',
+            '.#------#.',
+            '.########.',
+        ],
+        'press': [
+            '#############',
+            '#.#.#.#.#.#.#',
+            '#############',
+            'o...........o',
+            '#############',
+            '#.#.#.#.#.#.#',
+            '#############',
+            '.#.........#.',
+            '.o.........o.',
+        ],
+        'vial': [
+            '.#####.',
+            '.#...#.',
+            '.#...#.',
+            '.#...#.',
+            '.#+++#.',
+            '.#+++#.',
+            '.#+++#.',
+            '.#+++#.',
+            '.#####.',
+            '..###..',
+            '...#...',
+        ],
+        'lens': [
+            '.#####..',
+            '##+++##.',
+            '#+...+#.',
+            '#+...+#.',
+            '##+++##.',
+            '.#####+.',
+            '....+##.',
+            '.....+##',
+            '......+#',
+        ],
+        'mushroom': [
+            '..#####..',
+            '.#######.',
+            '##+###+##',
+            '#########',
+            '.#######.',
+            '...###...',
+            '...#+#...',
+            '...#+#...',
+            '...###...',
+        ],
+    }
+    SLATE, GREEN, MUTED = '#9dbfcc', '#34f06a', '#7d909a'
+    PLACEMENTS = [
+        ('leaf',      7,   5,  4.4, -18, 0.22, SLATE),
+        ('flower',   17,  11,  3.6,  12, 0.18, GREEN),
+        ('pencil',   30,   6,  4.0,   6, 0.17, MUTED),
+        ('sprout',   43,   9,  4.2,  -8, 0.20, SLATE),
+        ('notebook', 56,   5,  4.0, -10, 0.18, SLATE),
+        ('lens',     69,  10,  4.2, -12, 0.20, GREEN),
+        ('press',    82,   7,  3.6,   6, 0.17, MUTED),
+        ('leaf',     93,  12,  3.4,  26, 0.18, SLATE),
+        ('scissors',  8,  90,  3.8,  10, 0.20, SLATE),
+        ('specimen', 21,  94,  3.8,  -8, 0.18, SLATE),
+        ('pen',      34,  91,  4.0,   8, 0.18, MUTED),
+        ('mushroom', 47,  95,  3.8,   6, 0.17, GREEN),
+        ('vial',     60,  90,  3.6,  -6, 0.18, MUTED),
+        ('flower',   73,  94,  3.4,  16, 0.18, SLATE),
+        ('leaf',     86,  91,  3.6, -22, 0.19, GREEN),
+        ('notebook', 95,  88,  3.2,  10, 0.16, MUTED),
+        ('sprout',    4,  34,  3.2,  10, 0.14, SLATE),
+        ('leaf',      5,  62,  3.0, -26, 0.13, MUTED),
+        ('flower',    3,  78,  3.0,  14, 0.12, GREEN),
+        ('lens',     96,  38,  3.0,  18, 0.14, MUTED),
+        ('pencil',   97,  56,  3.2, -18, 0.13, SLATE),
+        ('specimen', 95,  70,  3.0,  12, 0.12, MUTED),
+        ('leaf',     38,  30,  3.0,  32, 0.07, MUTED),
+        ('flower',   55,  72,  2.8, -16, 0.07, SLATE),
+        ('vial',     28,  68,  2.6,   8, 0.06, MUTED),
+        ('scissors', 64,  26,  2.8, -10, 0.07, SLATE),
+    ]
+
+    def build_svg(rows, color):
+        h = len(rows)
+        w = max(len(r) for r in rows)
+        cells = ''
+        for y, row in enumerate(rows):
+            for x, c in enumerate(row):
+                if c in ('.', ' '):
+                    continue
+                op = '0.45' if c == '+' else '1'
+                cells += (f'<rect x="{x}" y="{y}" width="1.04" height="1.04"'
+                          f' fill="{color}" fill-opacity="{op}"/>')
+        return (f'<svg viewBox="0 0 {w} {h}" width="{w}" height="{h}"'
+                f' shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">'
+                f'{cells}</svg>')
+
+    items = ''
+    for glyph, top, left, unit, rot, op, color in PLACEMENTS:
+        rows = GLYPHS.get(glyph)
+        if not rows:
+            continue
+        w = max(len(r) for r in rows)
+        svg = build_svg(rows, color)
+        px_w = w * unit
+        style = (f'position:absolute;top:{top}%;left:{left}%;width:{px_w}px;'
+                 f'opacity:{op};transform:translate(-50%,-50%) rotate({rot}deg);'
+                 f'image-rendering:pixelated;line-height:0;')
+        items += f'<div style="{style}">{svg}</div>'
+
+    flora = (f'<div style="position:fixed;inset:0;pointer-events:none;'
+             f'overflow:hidden;z-index:1;">{items}</div>')
+
+    scanlines = (
+        '<div style="position:fixed;inset:0;pointer-events:none;z-index:2;'
+        'background-image:repeating-linear-gradient('
+        '0deg,rgba(0,0,0,.22) 0px,rgba(0,0,0,.22) 1px,transparent 1px,transparent 3px);'
+        'opacity:.5;mix-blend-mode:multiply;"></div>'
+    )
+
+    vignette = (
+        '<div style="position:fixed;inset:0;pointer-events:none;z-index:2;'
+        'background:'
+        'radial-gradient(120% 90% at 50% 0%,transparent 55%,rgba(0,0,0,.45) 100%),'
+        'radial-gradient(120% 100% at 50% 100%,transparent 45%,rgba(0,0,0,.55) 100%);">'
+        '</div>'
+    )
+
+    return flora + scanlines + vignette
+
+st.markdown(_make_flora_html(), unsafe_allow_html=True)
+
+# ── UI helpers ───────────────────────────────────────────────────────────────
+def section_label(text, accent='slate'):
+    css_class = 'pix-section' + (' green' if accent == 'green' else '')
+    st.markdown(
+        f'<div class="{css_class}"><span class="pix-section-bar"></span>{text}</div>',
+        unsafe_allow_html=True)
+
+def panel_title(text, subtitle='', accent='green'):
+    cls = '' if accent == 'green' else ' slate'
+    sub_html = f'<div class="pix-panel-sub">{subtitle}</div>' if subtitle else ''
+    st.markdown(
+        f'<div class="pix-panel-hdr{cls}">{text}</div>{sub_html}',
+        unsafe_allow_html=True)
+
+def page_header(title, subtitle, last_no=None):
+    count_html = ''
+    if last_no is not None:
+        count_html = f'<span class="pix-badge-count">{last_no:,} 筆</span>'
+    st.markdown(f"""
+<div class="pix-header">
+  <span class="pix-header-bar"></span>
+  <div style="display:flex;flex-direction:column;gap:3px;">
+    <span class="pix-header-title">{title}</span>
+    <span class="pix-header-sub">{subtitle}</span>
+  </div>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
+    <span class="pix-badge-online">● ONLINE</span>
+    {count_html}
+  </div>
+</div>""", unsafe_allow_html=True)
 
 # ── Password gate ─────────────────────────────────────────────────────────────
 def check_password():
@@ -182,13 +620,15 @@ def check_password():
             "<path d='M8 11V8a4 4 0 0 1 8 0v3'/></svg></span></div>",
             unsafe_allow_html=True)
         st.markdown(
-            "<h2 style='text-align:center; line-height:1.7'>輸入密碼，<br>打開採集記錄簿</h2>",
+            "<div class='login-title'>輸入密碼，<br>打開採集記錄簿</div>",
             unsafe_allow_html=True)
-        pw = st.text_input('密碼', type='password', label_visibility='collapsed',
-                           placeholder='● ● ● ●')
+        with st.form('login_form'):
+            pw = st.text_input('密碼', type='password', label_visibility='collapsed',
+                               placeholder='● ● ● ●')
+            entered = st.form_submit_button('進入 →', type='primary', use_container_width=True)
         st.markdown("<div class='login-hint'>SPECIMEN COLLECTION SYSTEM // ACCESS REQUIRED</div>",
                     unsafe_allow_html=True)
-        if pw:
+        if entered:
             if pw == st.secrets.get('app_password'):
                 st.session_state.auth_ok = True
                 st.rerun()
@@ -507,150 +947,158 @@ def upsert_locality(short: str, full: str):
     _commit_df(WS_LOCALITY, df, f'add locality {short}')
 
 edit_mode = st.session_state.get('edit_row') is not None
+
+# ── App header ────────────────────────────────────────────────────────────────
 if edit_mode:
-    st.title('編輯記錄')
-    st.markdown("<div class='app-subtitle'>EDIT RECORD // 編輯模式</div>", unsafe_allow_html=True)
-    st.info(f'正在編輯第 {st.session_state.edit_row} 列；修改後按「儲存修改」寫回，或按「取消編輯」放棄。')
+    page_header('編輯記錄', 'EDIT RECORD // 編輯模式')
 else:
-    st.title('標本採集記錄輸入')
-    st.markdown("<div class='app-subtitle'>SPECIMEN COLLECTION // 像素遊戲風</div>", unsafe_allow_html=True)
+    page_header('標本採集記錄', 'SPECIMEN COLLECTION', last_no=last_no)
 
-# ── Coll. No. ─────────────────────────────────────────────────────────────────
-c1, _ = st.columns([1, 3])
-with c1:
-    coll_no = st.number_input('Coll. No.', min_value=1,
-                              value=st.session_state.coll_no, step=1,
-                              key=f'cno_{fk}')
-st.divider()
+# ── Form panel ────────────────────────────────────────────────────────────────
+with st.container(border=True):
+    panel_title(
+        '標本採集記錄輸入' if not edit_mode else '編輯記錄',
+        subtitle='SPECIMEN COLLECTION',
+        accent='green'
+    )
+    if edit_mode:
+        st.info(f'正在編輯第 {st.session_state.edit_row} 列；修改後按「儲存修改」寫回，或按「取消編輯」放棄。')
 
-# ── Locality ──────────────────────────────────────────────────────────────────
-st.markdown('**採集地點**')
-loc_short = (st.selectbox('地名簡稱', loc_names,
-                          index=None, key=f'loc_{fk}',
-                          placeholder='搜尋；清單中沒有可直接打字新增',
-                          accept_new_options=True) or '').strip()
-sync_locality_field()  # reactive: runs right after short-name selection
+    # ── Coll. No. ─────────────────────────────────────────────────────────────
+    c1, _ = st.columns([1, 3])
+    with c1:
+        coll_no = st.number_input('Coll. No.', min_value=1,
+                                  value=st.session_state.coll_no, step=1,
+                                  key=f'cno_{fk}')
+    st.divider()
 
-if st.session_state.get('is_new_loc'):
-    st.markdown('<span class="new-badge">新地名 — 填地點英文、選縣市 / 鄉鎮（無英文者可補），送出後自動加入清單</span>',
-                unsafe_allow_html=True)
+    # ── Locality ──────────────────────────────────────────────────────────────
+    section_label('採集地點')
+    loc_short = (st.selectbox('地名簡稱', loc_names,
+                              index=None, key=f'loc_{fk}',
+                              placeholder='搜尋；清單中沒有可直接打字新增',
+                              accept_new_options=True) or '').strip()
+    sync_locality_field()
 
-    def has_en(s):
-        return '(' in s
-    def combine(cn, en):
-        cn = cn.strip()
-        if not cn or has_en(cn):
-            return cn          # already bilingual, or empty
-        en = en.strip()
-        return f'{cn} ({en})' if en else cn
+    if st.session_state.get('is_new_loc'):
+        st.markdown('<span class="new-badge">新地名 — 填地點英文、選縣市 / 鄉鎮（無英文者可補），送出後自動加入清單</span>',
+                    unsafe_allow_html=True)
 
-    # 地點英文 directly under 地名簡稱
-    place_en = st.text_input('地點英文（選填）', key=f'place_en_{fk}',
-                             placeholder='例 Tianchih trail').strip()
+        def has_en(s):
+            return '(' in s
+        def combine(cn, en):
+            cn = cn.strip()
+            if not cn or has_en(cn):
+                return cn
+            en = en.strip()
+            return f'{cn} ({en})' if en else cn
 
-    lc1, lc2 = st.columns(2)
-    with lc1:
-        county = (st.selectbox('縣市', counties, index=None, key=f'county_{fk}',
-                               placeholder='選擇或輸入縣市',
-                               accept_new_options=True) or '').strip()
-        county_en = '' if (not county or has_en(county)) else \
-            st.text_input('縣市英文', key=f'county_en_{fk}',
-                          placeholder='例 Nantou county')
-    with lc2:
-        tw_opts = tw_by_county.get(county, [])
-        township = (st.selectbox('鄉鎮（先選縣市）', tw_opts, index=None, key=f'tw_{fk}',
-                                 placeholder='選擇或輸入鄉鎮',
-                                 accept_new_options=True) or '').strip()
-        township_en = '' if (not township or has_en(township)) else \
-            st.text_input('鄉鎮英文', key=f'tw_en_{fk}',
-                          placeholder='例 Caotun town')
+        place_en = st.text_input('地點英文（選填）', key=f'place_en_{fk}',
+                                 placeholder='例 Tianchih trail').strip()
 
-    county_full   = combine(county, county_en or '')
-    township_full = combine(township, township_en or '')
-    place_full    = combine(loc_short, place_en)
-    full_loc = ', '.join([p for p in [county_full, township_full, place_full] if p])
-    if full_loc:
-        st.caption(f'→ 完整地名：`{full_loc}`')
-else:
-    full_loc = st.text_input('完整地名', key=f'fullloc_{fk}',
-                             placeholder='選地名後自動帶入').strip()
-st.divider()
+        lc1, lc2 = st.columns(2)
+        with lc1:
+            county = (st.selectbox('縣市', counties, index=None, key=f'county_{fk}',
+                                   placeholder='選擇或輸入縣市',
+                                   accept_new_options=True) or '').strip()
+            county_en = '' if (not county or has_en(county)) else \
+                st.text_input('縣市英文', key=f'county_en_{fk}',
+                              placeholder='例 Nantou county')
+        with lc2:
+            tw_opts = tw_by_county.get(county, [])
+            township = (st.selectbox('鄉鎮（先選縣市）', tw_opts, index=None, key=f'tw_{fk}',
+                                     placeholder='選擇或輸入鄉鎮',
+                                     accept_new_options=True) or '').strip()
+            township_en = '' if (not township or has_en(township)) else \
+                st.text_input('鄉鎮英文', key=f'tw_en_{fk}',
+                              placeholder='例 Caotun town')
 
-# ── Species ───────────────────────────────────────────────────────────────────
-st.markdown('**物種**')
-sci_name = (st.selectbox('Scientific Name', sp_names,
-                         index=None, key=f'sci_{fk}',
-                         placeholder='輸入屬名或種小名搜尋；清單中沒有可直接打字新增',
-                         accept_new_options=True) or '').strip()
-sync_species_fields()  # reactive: runs right after sci selection
+        county_full   = combine(county, county_en or '')
+        township_full = combine(township, township_en or '')
+        place_full    = combine(loc_short, place_en)
+        full_loc = ', '.join([p for p in [county_full, township_full, place_full] if p])
+        if full_loc:
+            st.caption(f'→ 完整地名：`{full_loc}`')
+    else:
+        full_loc = st.text_input('完整地名', key=f'fullloc_{fk}',
+                                 placeholder='選地名後自動帶入').strip()
+    st.divider()
 
-if st.session_state.is_new_species:
-    st.markdown('<span class="new-badge">新學名 — 請填入科名和中文名，送出後自動加入清單</span>',
-                unsafe_allow_html=True)
+    # ── Species ───────────────────────────────────────────────────────────────
+    section_label('物種')
+    sci_name = (st.selectbox('Scientific Name', sp_names,
+                             index=None, key=f'sci_{fk}',
+                             placeholder='輸入屬名或種小名搜尋；清單中沒有可直接打字新增',
+                             accept_new_options=True) or '').strip()
+    sync_species_fields()
 
-sc1, sc2, sc3 = st.columns(3)
-with sc1:
-    habit = (st.selectbox('Habit', [h for h in HABITS if h], index=None,
-                          key=f'habit_{fk}', placeholder='選擇或輸入',
-                          accept_new_options=True) or '')
-with sc2:
-    family = (st.selectbox('Family', families,
-                           index=None, key=f'family_{fk}',
-                           placeholder='科名（自動帶入，可搜尋或新增）',
-                           accept_new_options=True) or '').strip()
-with sc3:
-    common = st.text_input('Common Name', key=f'common_{fk}',
-                            placeholder='中文名（可手動填或修改）')
-st.divider()
+    if st.session_state.is_new_species:
+        st.markdown('<span class="new-badge">新學名 — 請填入科名和中文名，送出後自動加入清單</span>',
+                    unsafe_allow_html=True)
 
-# ── Date ──────────────────────────────────────────────────────────────────────
-st.markdown('**日期**')
-d1, d2, d3 = st.columns(3)
-with d1:
-    day = st.number_input('日', min_value=1, max_value=31,
-                          value=datetime.today().day, step=1, key=f'day_{fk}')
-with d2:
-    month = st.selectbox('月', MONTHS, index=datetime.today().month - 1,
-                         key=f'month_{fk}')
-with d3:
-    year = st.number_input('年', min_value=1900, max_value=2100,
-                           value=datetime.today().year, step=1, key=f'year_{fk}')
-date_str = f'{int(day)} {month}. {int(year)}'
-st.caption(f'→ 將儲存為：`{date_str}`')
-st.divider()
-
-# ── GPS + Altitude ────────────────────────────────────────────────────────────
-st.markdown('**座標 / 海拔**')
-g1, g2, g3 = st.columns(3)
-with g1:
-    gpsn = st.text_input('GPSN', placeholder='e.g. 24.1234', key=f'gpsn_{fk}')
-with g2:
-    gpse = st.text_input('GPSE', placeholder='e.g. 121.5678', key=f'gpse_{fk}')
-with g3:
-    altitude = st.text_input('Altitude (m)', placeholder='e.g. 1200', key=f'alt_{fk}')
-st.divider()
-
-# ── Collector + Identifier ────────────────────────────────────────────────────
-st.markdown('**採集 / 鑑定**')
-e1, e2 = st.columns(2)
-with e1:
-    collector = (st.selectbox('Collector', [c for c in collectors if c], index=None,
-                              key=f'coll_{fk}', placeholder='選擇或輸入採集人',
+    sc1, sc2, sc3 = st.columns(3)
+    with sc1:
+        habit = (st.selectbox('Habit', [h for h in HABITS if h], index=None,
+                              key=f'habit_{fk}', placeholder='選擇或輸入',
                               accept_new_options=True) or '')
-with e2:
-    identifier = st.text_input('Identifier', placeholder='鑑定人', key=f'ident_{fk}')
-st.divider()
+    with sc2:
+        family = (st.selectbox('Family', families,
+                               index=None, key=f'family_{fk}',
+                               placeholder='科名（自動帶入，可搜尋或新增）',
+                               accept_new_options=True) or '').strip()
+    with sc3:
+        common = st.text_input('Common Name', key=f'common_{fk}',
+                                placeholder='中文名（可手動填或修改）')
+    st.divider()
 
-# ── Note ─────────────────────────────────────────────────────────────────────
-note = st.text_area('Note', placeholder='備註（可留空）', height=80, key=f'note_{fk}')
+    # ── Date ──────────────────────────────────────────────────────────────────
+    section_label('日期')
+    d1, d2, d3 = st.columns(3)
+    with d1:
+        day = st.number_input('日', min_value=1, max_value=31,
+                              value=datetime.today().day, step=1, key=f'day_{fk}')
+    with d2:
+        month = st.selectbox('月', MONTHS, index=datetime.today().month - 1,
+                             key=f'month_{fk}')
+    with d3:
+        year = st.number_input('年', min_value=1900, max_value=2100,
+                               value=datetime.today().year, step=1, key=f'year_{fk}')
+    date_str = f'{int(day)} {month}. {int(year)}'
+    st.caption(f'→ 將儲存為：`{date_str}`')
+    st.divider()
 
-# ── Submit ────────────────────────────────────────────────────────────────────
-submit = st.button('儲存修改' if edit_mode else '新增記錄',
-                   type='primary', use_container_width=True)
-if edit_mode:
-    if st.button('取消編輯', use_container_width=True):
-        exit_edit_mode()
-        st.rerun()
+    # ── GPS + Altitude ────────────────────────────────────────────────────────
+    section_label('座標 / 海拔')
+    g1, g2, g3 = st.columns(3)
+    with g1:
+        gpsn = st.text_input('GPSN', placeholder='e.g. 24.1234', key=f'gpsn_{fk}')
+    with g2:
+        gpse = st.text_input('GPSE', placeholder='e.g. 121.5678', key=f'gpse_{fk}')
+    with g3:
+        altitude = st.text_input('Altitude (m)', placeholder='e.g. 1200', key=f'alt_{fk}')
+    st.divider()
+
+    # ── Collector + Identifier ────────────────────────────────────────────────
+    section_label('採集 / 鑑定')
+    e1, e2 = st.columns(2)
+    with e1:
+        collector = (st.selectbox('Collector', [c for c in collectors if c], index=None,
+                                  key=f'coll_{fk}', placeholder='選擇或輸入採集人',
+                                  accept_new_options=True) or '')
+    with e2:
+        identifier = st.text_input('Identifier', placeholder='鑑定人', key=f'ident_{fk}')
+    st.divider()
+
+    # ── Note ──────────────────────────────────────────────────────────────────
+    note = st.text_area('Note', placeholder='備註（可留空）', height=80, key=f'note_{fk}')
+
+    # ── Submit ─────────────────────────────────────────────────────────────────
+    submit = st.button('儲存修改' if edit_mode else '新增記錄',
+                       type='primary', use_container_width=True)
+    if edit_mode:
+        if st.button('取消編輯', use_container_width=True):
+            exit_edit_mode()
+            st.rerun()
 
 if submit:
     if not sci_name:
@@ -676,7 +1124,6 @@ if submit:
             'Note':                              note,
         }
 
-        # Keep lookup lists enriched in both modes
         is_new = sci_name not in sp_dict
         existing_common = sp_dict.get(sci_name, {}).get('common', '')
         if is_new or (final_common and final_common != existing_common):
@@ -707,69 +1154,69 @@ if submit:
             st.success(f'{label}：#{int(coll_no)} *{sci_name}*　@　{loc_short}　{date_str}')
             st.balloons()
 
-# ── Records: search & delete ──────────────────────────────────────────────────
-st.divider()
-st.subheader('記錄查詢 / 刪除')
+# ── Records panel ─────────────────────────────────────────────────────────────
+st.markdown('<div style="height:16px"></div>', unsafe_allow_html=True)
+with st.container(border=True):
+    panel_title('記錄查詢 / 刪除', accent='slate')
+    try:
+        records = load_all_records()
+        show_cols = ['_row', 'Coll. No.', 'Scientific Name', 'Common Name',
+                     'Locality and habitat description', 'Date', 'Collector']
+        existing_cols = [c for c in show_cols if c in records.columns]
 
-try:
-    records = load_all_records()
-    show_cols = ['_row', 'Coll. No.', 'Scientific Name', 'Common Name',
-                 'Locality and habitat description', 'Date', 'Collector']
-    existing_cols = [c for c in show_cols if c in records.columns]
+        query = st.text_input(
+            '搜尋（學名 / 中文名 / 科名 / 地點 / 採集人 / 編號，可多關鍵字以空格分隔）',
+            key='record_search').strip()
 
-    query = st.text_input('搜尋（學名 / 中文名 / 科名 / 地點 / 採集人 / 編號，可多關鍵字以空格分隔）',
-                          key='record_search').strip()
+        if query:
+            blob = records.fillna('').astype(str).apply(
+                lambda r: ' '.join(r.values).lower(), axis=1)
+            mask = pd.Series(True, index=records.index)
+            for term in query.lower().split():
+                mask &= blob.str.contains(term, regex=False)
+            result = records[mask]
+            st.caption(f'找到 {len(result)} 筆')
+        else:
+            result = records.tail(15)
+            st.caption(f'共 {len(records)} 筆，以下顯示最近 15 筆')
 
-    if query:
-        # AND match across all columns, case-insensitive
-        blob = records.fillna('').astype(str).apply(lambda r: ' '.join(r.values).lower(), axis=1)
-        mask = pd.Series(True, index=records.index)
-        for term in query.lower().split():
-            mask &= blob.str.contains(term, regex=False)
-        result = records[mask]
-        st.caption(f'找到 {len(result)} 筆')
-    else:
-        result = records.tail(15)
-        st.caption(f'共 {len(records)} 筆，以下顯示最近 15 筆')
+        disp_cols = [c for c in existing_cols if c != '_row']
+        result_rev = result.iloc[::-1].reset_index(drop=True)
+        display = result_rev[disp_cols].fillna('').astype(str).replace('nan', '')
 
-    disp_cols = [c for c in existing_cols if c != '_row']
-    result_rev = result.iloc[::-1].reset_index(drop=True)
-    display = result_rev[disp_cols].fillna('').astype(str).replace('nan', '')
+        st.caption('點選表格左側即可選取一列，下方會出現編輯 / 刪除按鈕')
+        event = st.dataframe(
+            display, hide_index=True, key='rec_table',
+            on_select='rerun', selection_mode='single-row',
+            column_config={
+                'Coll. No.': st.column_config.Column(width=80),
+                'Scientific Name': st.column_config.Column(width=240),
+                'Common Name': st.column_config.Column(width=130),
+                'Locality and habitat description': st.column_config.Column('地點', width=460),
+                'Date': st.column_config.Column(width=110),
+                'Collector': st.column_config.Column(width=320),
+            },
+        )
 
-    st.caption('點選表格左側即可選取一列，下方會出現刪除按鈕')
-    event = st.dataframe(
-        display, hide_index=True, key='rec_table',
-        on_select='rerun', selection_mode='single-row',
-        column_config={
-            'Coll. No.': st.column_config.Column(width=80),
-            'Scientific Name': st.column_config.Column(width=240),
-            'Common Name': st.column_config.Column(width=130),
-            'Locality and habitat description': st.column_config.Column('地點', width=460),
-            'Date': st.column_config.Column(width=110),
-            'Collector': st.column_config.Column(width=320),
-        },
-    )
+        sel = event.selection.rows
+        if sel and sel[0] < len(result_rev):
+            row = result_rev.iloc[sel[0]]
+            excel_row = int(row['_row'])
+            label = (f"#{row.get('Coll. No.','')}　"
+                     f"{row.get('Scientific Name','') or '(無學名)'}　"
+                     f"{row.get('Date','') or ''}")
 
-    # ── Edit / delete selected row ─────────────────────────────────────────────
-    sel = event.selection.rows
-    if sel and sel[0] < len(result_rev):
-        row = result_rev.iloc[sel[0]]
-        excel_row = int(row['_row'])
-        label = (f"#{row.get('Coll. No.','')}　"
-                 f"{row.get('Scientific Name','') or '(無學名)'}　"
-                 f"{row.get('Date','') or ''}")
-
-        be, bd = st.columns(2)
-        with be:
-            if st.button(f'編輯此筆（帶到上方表單）', use_container_width=True):
-                enter_edit_mode(row)
-                st.rerun()
-        with bd:
-            if st.button(f'刪除此筆', type='secondary', use_container_width=True):
-                delete_record(excel_row)
-                st.cache_data.clear()
-                st.success(f'已刪除：{label}')
-                st.rerun()
-        st.caption(f'選取：{label}')
-except Exception as e:
-    st.warning(f'無法載入記錄：{e}')
+            be, bd = st.columns(2)
+            with be:
+                if st.button('編輯此筆（帶到上方表單）', use_container_width=True):
+                    enter_edit_mode(row)
+                    st.rerun()
+            with bd:
+                if st.button('刪除此筆', type='secondary', use_container_width=True):
+                    delete_record(excel_row)
+                    st.cache_data.clear()
+                    st.success(f'已刪除：{label}')
+                    st.rerun()
+            st.caption(f'選取：{label}')
+    except Exception as e:
+        st.warning(f'無法載入記錄：{e}')
