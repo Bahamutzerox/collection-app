@@ -197,7 +197,7 @@ code {
   font-family: var(--font-mono) !important;
 }
 
-/* ── DataFrame table ─────────────────────────────────────────────────────── */
+/* ── DataFrame table (compact selection strip) ───────────────────────────── */
 [data-testid="stDataFrame"] {
   border: 2px solid var(--line-strong) !important; border-radius: 0 !important;
 }
@@ -216,6 +216,30 @@ code {
 [data-testid="stDataFrame"] tbody tr:hover td {
   background: var(--panel-3) !important;
   cursor: pointer !important;
+}
+
+/* ── Custom records HTML table ───────────────────────────────────────────── */
+.rec-table { width:100%; border-collapse:collapse; margin-bottom:4px; }
+.rec-table thead th {
+  color:var(--green); font-family:var(--font-mono); font-size:11px;
+  letter-spacing:.08em; text-transform:uppercase;
+  padding:8px 12px 10px; border-bottom:2px solid var(--green-dim);
+  text-align:left; background:var(--panel-2); white-space:nowrap;
+}
+.rec-table tbody td {
+  padding:9px 12px; border-bottom:1px solid var(--line);
+  vertical-align:middle; color:var(--ink); font-size:13px;
+}
+.rec-no  { color:var(--muted)!important; font-family:var(--font-mono); font-size:12px!important; white-space:nowrap; }
+.rec-sci { font-style:italic; color:var(--ink-bright)!important; }
+.rec-date{ color:var(--slate)!important; font-family:var(--font-mono); font-size:12px!important; white-space:nowrap; }
+.rec-loc { color:var(--muted)!important; font-size:12px!important; }
+.rec-coll{ color:var(--ink)!important; font-size:12px!important; white-space:nowrap; }
+.rec-table tbody tr:hover td { background:rgba(27,37,48,.85); }
+.habit-chip {
+  display:inline-block; border-radius:2px; padding:2px 8px;
+  font-size:11px; font-family:'JetBrains Mono',monospace; letter-spacing:.04em;
+  white-space:nowrap;
 }
 
 /* ── Alerts ──────────────────────────────────────────────────────────────── */
@@ -573,6 +597,74 @@ def _make_flora_html():
     return flora + scanlines + vignette
 
 st.markdown(_make_flora_html(), unsafe_allow_html=True)
+
+# ── Records table helpers ────────────────────────────────────────────────────
+_HABIT_CHIP = {
+    'tree':      'background:rgba(52,240,106,.15);color:#34f06a',
+    'shrub':     'background:rgba(157,191,204,.15);color:#9dbfcc',
+    'herb':      'background:rgba(255,200,61,.15);color:#ffc83d',
+    'fern':      'background:rgba(255,92,200,.15);color:#ff5cc8',
+    'epiphyte':  'background:rgba(77,225,255,.15);color:#4de1ff',
+    'aquatic':   'background:rgba(77,225,255,.15);color:#4de1ff',
+    'grass':     'background:rgba(125,145,155,.15);color:#7d909a',
+    'moss':      'background:rgba(24,168,71,.15);color:#18a847',
+    'palm':      'background:rgba(255,200,61,.15);color:#ffc83d',
+    'bamboo':    'background:rgba(52,240,106,.10);color:#34f06a',
+    'vine':      'background:rgba(157,191,204,.15);color:#9dbfcc',
+    'liana':     'background:rgba(157,191,204,.15);color:#9dbfcc',
+    'annual':    'background:rgba(255,200,61,.12);color:#ffc83d',
+    'biennial':  'background:rgba(255,200,61,.12);color:#ffc83d',
+    'perennial': 'background:rgba(255,200,61,.12);color:#ffc83d',
+}
+_HABIT_DEFAULT = 'background:rgba(79,94,104,.15);color:#7d909a'
+
+def _habit_badge(h):
+    h = str(h).strip()
+    if not h or h == 'nan':
+        return ''
+    style = _HABIT_CHIP.get(h.lower(), _HABIT_DEFAULT)
+    return f'<span class="habit-chip" style="{style}">{h}</span>'
+
+def _abbr_collector(s):
+    s = str(s).strip()
+    if not s or s == 'nan':
+        return ''
+    m = re.search(r'\(([^)]+)\)', s)
+    if m:
+        parts = m.group(1).split()
+        # "C. T. Chao" → keep as-is; >3 parts → first + last
+        return ' '.join(parts) if len(parts) <= 3 else f'{parts[0]} {parts[-1]}'
+    return s[:18]
+
+def _render_records_table(df):
+    rows = ''
+    for _, row in df.iterrows():
+        no    = row.get('Coll. No.', '') or ''
+        sci   = row.get('Scientific Name', '') or ''
+        cn    = row.get('Common Name', '') or ''
+        habit = row.get('Habit', '') or ''
+        loc   = str(row.get('Locality and habitat description', '') or '')
+        date  = row.get('Date', '') or ''
+        coll  = row.get('Collector', '') or ''
+        if loc == 'nan': loc = ''
+        loc_s = (loc[:44] + '…') if len(loc) > 44 else loc
+        sci_html = f'<em>{sci}</em>' if sci and sci != 'nan' else ''
+        cn_s  = cn if cn and cn != 'nan' else ''
+        rows += (f'<tr class="rec-row">'
+                 f'<td class="rec-no">{no}</td>'
+                 f'<td class="rec-sci">{sci_html}</td>'
+                 f'<td class="rec-common">{cn_s}</td>'
+                 f'<td class="rec-habit">{_habit_badge(habit)}</td>'
+                 f'<td class="rec-loc">{loc_s}</td>'
+                 f'<td class="rec-date">{date}</td>'
+                 f'<td class="rec-coll">{_abbr_collector(str(coll))}</td>'
+                 f'</tr>')
+    return (
+        '<table class="rec-table"><thead><tr>'
+        '<th>NO.</th><th>SCIENTIFIC NAME</th><th>中文名</th>'
+        '<th>HABIT</th><th>地點</th><th>DATE</th><th>採集人</th>'
+        f'</tr></thead><tbody>{rows}</tbody></table>'
+    )
 
 # ── UI helpers ───────────────────────────────────────────────────────────────
 def section_label(text, accent='slate'):
@@ -1160,9 +1252,7 @@ with st.container(border=True):
     panel_title('記錄查詢 / 刪除', accent='slate')
     try:
         records = load_all_records()
-        show_cols = ['_row', 'Coll. No.', 'Scientific Name', 'Common Name',
-                     'Locality and habitat description', 'Date', 'Collector']
-        existing_cols = [c for c in show_cols if c in records.columns]
+        total = len(records)
 
         query = st.text_input(
             '搜尋（學名 / 中文名 / 科名 / 地點 / 採集人 / 編號，可多關鍵字以空格分隔）',
@@ -1175,37 +1265,56 @@ with st.container(border=True):
             for term in query.lower().split():
                 mask &= blob.str.contains(term, regex=False)
             result = records[mask]
-            st.caption(f'找到 {len(result)} 筆')
+            matched = len(result)
         else:
-            result = records.tail(15)
-            st.caption(f'共 {len(records)} 筆，以下顯示最近 15 筆')
+            result = records
+            matched = total
 
-        disp_cols = [c for c in existing_cols if c != '_row']
+        # ── 統計數字 ──────────────────────────────────────────────────────────
+        st.markdown(f"""
+<div style="display:flex;gap:40px;margin:10px 0 16px;padding:0 4px;align-items:flex-end;">
+  <div>
+    <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:.12em;margin-bottom:3px;">≡ 共計</div>
+    <div style="font-family:var(--font-mono);font-size:28px;color:var(--green);line-height:1;letter-spacing:.02em;">{total:,}</div>
+  </div>
+  <div>
+    <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:.12em;margin-bottom:3px;">◎ 符合</div>
+    <div style="font-family:var(--font-mono);font-size:28px;color:var(--green);line-height:1;letter-spacing:.02em;">{matched:,}</div>
+  </div>
+</div>""", unsafe_allow_html=True)
+
+        N_SHOW = 12
         result_rev = result.iloc[::-1].reset_index(drop=True)
-        display = result_rev[disp_cols].fillna('').astype(str).replace('nan', '')
+        display_df = result_rev.head(N_SHOW)
 
-        st.caption('點選表格左側即可選取一列，下方會出現編輯 / 刪除按鈕')
+        if query:
+            st.caption(f'找到 {matched:,} 筆，顯示前 {N_SHOW} 筆 · 點選下方表格列可選取以編輯 / 刪除')
+        else:
+            st.caption(f'共 {total:,} 筆，以下顯示最近 {N_SHOW} 筆 · 點選下方表格列可選取以編輯 / 刪除')
+
+        # ── 自訂 HTML 顯示表格 ────────────────────────────────────────────────
+        st.markdown(_render_records_table(display_df), unsafe_allow_html=True)
+
+        # ── 選取列（精簡 dataframe，僅保留互動功能）──────────────────────────
+        sel_cols = ['Coll. No.', 'Scientific Name', 'Date']
+        sel_data = display_df[[c for c in sel_cols if c in display_df.columns]].fillna('').astype(str).replace('nan', '')
         event = st.dataframe(
-            display, hide_index=True, key='rec_table',
+            sel_data, hide_index=True, key='rec_table',
             on_select='rerun', selection_mode='single-row',
             column_config={
-                'Coll. No.': st.column_config.Column(width=80),
-                'Scientific Name': st.column_config.Column(width=240),
-                'Common Name': st.column_config.Column(width=130),
-                'Locality and habitat description': st.column_config.Column('地點', width=460),
-                'Date': st.column_config.Column(width=110),
-                'Collector': st.column_config.Column(width=320),
+                'Coll. No.':      st.column_config.Column(width=90),
+                'Scientific Name': st.column_config.Column(width=300),
+                'Date':           st.column_config.Column(width=120),
             },
         )
 
         sel = event.selection.rows
-        if sel and sel[0] < len(result_rev):
-            row = result_rev.iloc[sel[0]]
+        if sel and sel[0] < len(display_df):
+            row = display_df.iloc[sel[0]]
             excel_row = int(row['_row'])
             label = (f"#{row.get('Coll. No.','')}　"
                      f"{row.get('Scientific Name','') or '(無學名)'}　"
                      f"{row.get('Date','') or ''}")
-
             be, bd = st.columns(2)
             with be:
                 if st.button('編輯此筆（帶到上方表單）', use_container_width=True):
