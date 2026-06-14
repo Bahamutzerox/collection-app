@@ -42,7 +42,8 @@ st.set_page_config(page_title='標本採集記錄', layout='wide')
 # ── Theme (dark terminal / grid, accent #9dbfcc) ──────────────────────────────
 st.markdown("""
 <style>
-/* pixel font (Traditional-Chinese-capable) — used for titles only */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;700&display=swap');
+/* Zpix pixel font (Traditional-Chinese capable) — titles only */
 @font-face{
   font-family:'Zpix';
   src:url('https://cdn.jsdelivr.net/gh/SolidZORO/zpix-pixel-font/dist/Zpix.ttf') format('truetype');
@@ -50,9 +51,14 @@ st.markdown("""
 }
 
 :root{
-  --acc:#9dbfcc; --acc-bright:#c8e0ea; --acc-dim:rgba(157,191,204,.32);
-  --bg:#0b0f14; --panel:#131a22; --txt:#d4dee3; --muted:#7d909a;
+  /* Pixel Arcade: slate = display/headings, green = action */
+  --acc:#9dbfcc; --acc-bright:#c8e0ea; --acc-dim:rgba(157,191,204,.32); --acc-glow:rgba(157,191,204,.35);
+  --green:#34f06a; --green-bright:#7dffa6; --green-dim:rgba(52,240,106,.16); --green-glow:rgba(52,240,106,.45);
+  --amber:#ffc83d; --amber-dim:rgba(255,200,61,.16);
+  --red:#ff4d5e; --red-dim:rgba(255,77,94,.16);
+  --void:#07090c; --bg:#0b0f14; --panel:#131a22; --txt:#d4dee3; --muted:#7d909a; --faint:#4f5e68; --line-strong:#3a4856;
   --pixel:'Zpix', monospace;
+  --mono:'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
   --sans:-apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Helvetica Neue', Arial, sans-serif;
 }
 
@@ -94,56 +100,70 @@ label, .stTextInput label, .stSelectbox label, .stNumberInput label, .stTextArea
   color:var(--muted) !important; font-size:.82rem !important; letter-spacing:.03em;
 }
 
-/* inputs / selects — chunky pixel-style border (thick, square, hard focus) */
+/* inputs / selects — chunky square border; GREEN hard focus (action color) */
 input, textarea,
 [data-baseweb="input"], [data-baseweb="select"] > div, [data-baseweb="textarea"],
 [data-testid="stNumberInputContainer"]{
   background-color:var(--panel) !important;
-  border:2px solid var(--acc-dim) !important; border-radius:0 !important;
+  border:2px solid var(--line-strong) !important; border-radius:0 !important;
   color:var(--txt) !important;
 }
 [data-baseweb="input"]:focus-within, [data-baseweb="select"] > div:focus-within,
 [data-baseweb="textarea"]:focus-within{
-  border-color:var(--acc) !important;
-  box-shadow:0 0 0 2px var(--acc) !important;     /* hard pixel outline, no blur */
+  border-color:var(--green) !important;
+  box-shadow:0 0 0 2px var(--green), 0 0 14px var(--green-glow) !important;
 }
+[data-testid="stNumberInput"] input{ font-family:var(--mono) !important; color:var(--green) !important; }
 [data-testid="stNumberInput"] button{
-  border:2px solid var(--acc-dim) !important; border-radius:0 !important; color:var(--acc) !important;
+  border:2px solid var(--line-strong) !important; border-radius:0 !important; color:var(--green) !important;
 }
 
-/* buttons — terminal outline; primary = filled */
+/* buttons — GREEN action color. outline default; primary filled; secondary=danger */
 .stButton > button, .stFormSubmitButton > button{
-  background:transparent; color:var(--acc); border:1px solid var(--acc);
-  border-radius:3px; font-weight:600;
-  transition:all .12s ease;
+  background:transparent; color:var(--green); border:2px solid var(--green);
+  border-radius:3px; font-weight:600; transition:all .12s ease;
 }
 .stButton > button:hover, .stFormSubmitButton > button:hover{
-  background:var(--acc); color:var(--bg); box-shadow:0 0 14px rgba(157,191,204,.4);
+  background:var(--green); color:var(--void); box-shadow:0 0 14px var(--green-glow);
 }
 button[kind="primary"], .stButton > button[kind="primary"], .stFormSubmitButton > button[kind="primary"]{
-  background:var(--acc); color:var(--bg); border:1px solid var(--acc);
+  background:var(--green); color:var(--void); border:2px solid var(--green);
 }
-button[kind="primary"]:hover{ background:var(--acc-bright); border-color:var(--acc-bright); }
+button[kind="primary"]:hover{ background:var(--green-bright); border-color:var(--green-bright); box-shadow:0 0 14px var(--green-glow); }
+button[kind="secondary"]{ color:var(--red) !important; border-color:var(--red) !important; }
+button[kind="secondary"]:hover{ background:var(--red) !important; color:var(--void) !important; box-shadow:0 0 14px var(--red-dim) !important; }
 
 /* dividers */
 hr, [data-testid="stDivider"]{ border-color:var(--acc-dim) !important; }
 
-/* captions / code-ish previews */
-.stCaption, [data-testid="stCaptionContainer"]{ color:var(--muted) !important; }
-code{ color:var(--acc) !important; background:rgba(157,191,204,.08) !important; }
+/* captions / hints → mono; code previews → green mono (terminal readout) */
+.stCaption, [data-testid="stCaptionContainer"]{ color:var(--muted) !important; font-family:var(--mono) !important; }
+code{ color:var(--green) !important; background:var(--green-dim) !important; font-family:var(--mono) !important; }
 
 /* records table */
-[data-testid="stDataFrame"]{ border:1px solid var(--acc-dim); border-radius:4px; }
+[data-testid="stDataFrame"]{ border:2px solid var(--line-strong); border-radius:0; }
 [data-testid="stDataFrame"] thead tr th{ color:var(--acc) !important; }
 
-/* new-item badge — dark with accent */
+/* new-item badge → amber (signal: needs attention) */
 .new-badge{
-  display:inline-block; background:rgba(157,191,204,.10); color:var(--acc);
-  border:1px solid var(--acc-dim); border-radius:3px;
+  display:inline-block; background:var(--amber-dim); color:var(--amber);
+  border:1px solid var(--amber); border-radius:2px;
   padding:2px 8px; font-size:.78rem; font-weight:700; margin-bottom:6px; letter-spacing:.03em;
 }
-/* info / success boxes tinted toward accent */
-[data-testid="stAlert"]{ border:1px solid var(--acc-dim); }
+
+/* English mono subtitle under the main title */
+.app-subtitle{ font-family:var(--mono); font-size:12px; color:var(--muted);
+  letter-spacing:.12em; margin:-.3rem 0 .6rem .7rem; }
+
+/* login lock box + hint line */
+.login-lock{ display:inline-flex; align-items:center; justify-content:center;
+  width:60px; height:60px; margin-bottom:18px; border:2px solid var(--green);
+  border-radius:3px; color:var(--green); box-shadow:0 0 14px var(--green-glow); }
+.login-hint{ font-family:var(--mono); font-size:11px; color:var(--faint);
+  text-align:center; margin-top:16px; letter-spacing:.06em; }
+
+/* alerts */
+[data-testid="stAlert"]{ border:1px solid var(--line-strong); }
 </style>
 """, unsafe_allow_html=True)
 
@@ -155,10 +175,19 @@ def check_password():
     _, mid, _ = st.columns([1, 1.3, 1])
     with mid:
         st.markdown(
+            "<div style='text-align:center'><span class='login-lock'>"
+            "<svg width='26' height='26' viewBox='0 0 24 24' fill='none' "
+            "stroke='currentColor' stroke-width='2'>"
+            "<rect x='5' y='11' width='14' height='9' rx='1'/>"
+            "<path d='M8 11V8a4 4 0 0 1 8 0v3'/></svg></span></div>",
+            unsafe_allow_html=True)
+        st.markdown(
             "<h2 style='text-align:center; line-height:1.7'>輸入密碼，<br>打開採集記錄簿</h2>",
             unsafe_allow_html=True)
         pw = st.text_input('密碼', type='password', label_visibility='collapsed',
                            placeholder='● ● ● ●')
+        st.markdown("<div class='login-hint'>SPECIMEN COLLECTION SYSTEM // ACCESS REQUIRED</div>",
+                    unsafe_allow_html=True)
         if pw:
             if pw == st.secrets.get('app_password'):
                 st.session_state.auth_ok = True
@@ -480,9 +509,11 @@ def upsert_locality(short: str, full: str):
 edit_mode = st.session_state.get('edit_row') is not None
 if edit_mode:
     st.title('編輯記錄')
+    st.markdown("<div class='app-subtitle'>EDIT RECORD // 編輯模式</div>", unsafe_allow_html=True)
     st.info(f'正在編輯第 {st.session_state.edit_row} 列；修改後按「儲存修改」寫回，或按「取消編輯」放棄。')
 else:
     st.title('標本採集記錄輸入')
+    st.markdown("<div class='app-subtitle'>SPECIMEN COLLECTION // 像素遊戲風</div>", unsafe_allow_html=True)
 
 # ── Coll. No. ─────────────────────────────────────────────────────────────────
 c1, _ = st.columns([1, 3])
