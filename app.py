@@ -151,14 +151,20 @@ code{ color:var(--acc) !important; background:rgba(157,191,204,.08) !important; 
 def check_password():
     if st.session_state.get('auth_ok'):
         return True
-    st.title('標本採集記錄')
-    pw = st.text_input('請輸入密碼', type='password')
-    if pw:
-        if pw == st.secrets.get('app_password'):
-            st.session_state.auth_ok = True
-            st.rerun()
-        else:
-            st.error('密碼錯誤')
+    st.markdown("<div style='height:14vh'></div>", unsafe_allow_html=True)
+    _, mid, _ = st.columns([1, 1.3, 1])
+    with mid:
+        st.markdown(
+            "<h2 style='text-align:center; line-height:1.7'>輸入密碼，<br>打開採集記錄簿</h2>",
+            unsafe_allow_html=True)
+        pw = st.text_input('密碼', type='password', label_visibility='collapsed',
+                           placeholder='● ● ● ●')
+        if pw:
+            if pw == st.secrets.get('app_password'):
+                st.session_state.auth_ok = True
+                st.rerun()
+            else:
+                st.error('密碼錯誤')
     return False
 
 if not check_password():
