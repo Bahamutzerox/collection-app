@@ -309,19 +309,28 @@ code {
   padding: 0 12px 10px;
 }
 
-/* Section labels */
+/* Section labels — 18px slate, matches entry2.jsx SectionLabel */
 .pix-section {
   display: flex; align-items: center; gap: 8px;
   margin: 14px 0 8px;
-  font-family: var(--font-pixel); font-size: 15px; color: var(--slate);
+  font-family: var(--font-pixel); font-size: 18px; color: var(--slate);
   letter-spacing: .03em; text-shadow: var(--glow-text-slate);
 }
 .pix-section-bar {
-  display: inline-block; width: 5px; height: 14px;
+  display: inline-block; width: 5px; height: 16px;
   background: var(--slate); flex-shrink: 0;
 }
 .pix-section.green { color: var(--green); text-shadow: var(--glow-text); }
 .pix-section.green .pix-section-bar { background: var(--green); }
+
+/* AUTO +1 amber badge */
+.auto-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,200,61,.16); color: var(--amber);
+  border: 1px solid rgba(255,200,61,.4); border-radius: 2px;
+  padding: 4px 10px; font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: .04em; white-space: nowrap;
+}
 
 /* Login */
 .login-lock {
@@ -333,12 +342,22 @@ code {
 .login-title {
   text-align: center;
   font-family: var(--font-pixel) !important;
-  font-size: 20px; color: var(--ink-bright);
-  line-height: 2.2; margin: 16px 0 22px;
+  font-size: 22px; color: var(--slate);
+  line-height: 2.0; margin: 16px 0 22px;
+  text-shadow: var(--glow-text-slate);
 }
 .login-hint {
   font-family: var(--font-mono); font-size: 11px; color: var(--faint);
   text-align: center; margin-top: 14px; letter-spacing: .06em;
+}
+/* user icon inside login password input */
+[data-testid="stForm"] [data-baseweb="input"] {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239dbfcc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: 12px center !important;
+}
+[data-testid="stForm"] [data-baseweb="input"] input {
+  padding-left: 38px !important;
 }
 /* login form — hide the container border */
 [data-testid="stForm"] {
@@ -601,7 +620,7 @@ st.markdown(_make_flora_html(), unsafe_allow_html=True)
 # ── Records table helpers ────────────────────────────────────────────────────
 _HABIT_CHIP = {
     'tree':      'background:rgba(52,240,106,.15);color:#34f06a',
-    'shrub':     'background:rgba(157,191,204,.15);color:#9dbfcc',
+    'shrub':     'background:rgba(77,225,255,.15);color:#4de1ff',
     'herb':      'background:rgba(255,200,61,.15);color:#ffc83d',
     'fern':      'background:rgba(255,92,200,.15);color:#ff5cc8',
     'epiphyte':  'background:rgba(77,225,255,.15);color:#4de1ff',
@@ -718,7 +737,7 @@ def check_password():
             pw = st.text_input('密碼', type='password', label_visibility='collapsed',
                                placeholder='● ● ● ●')
             entered = st.form_submit_button('進入 →', type='primary', use_container_width=True)
-        st.markdown("<div class='login-hint'>SPECIMEN COLLECTION SYSTEM // ACCESS REQUIRED</div>",
+        st.markdown("<div class='login-hint'>DEMO · 輸入任意 4 碼以上即可進入</div>",
                     unsafe_allow_html=True)
         if entered:
             if pw == st.secrets.get('app_password'):
@@ -1057,63 +1076,72 @@ with st.container(border=True):
         st.info(f'正在編輯第 {st.session_state.edit_row} 列；修改後按「儲存修改」寫回，或按「取消編輯」放棄。')
 
     # ── Coll. No. ─────────────────────────────────────────────────────────────
-    c1, _ = st.columns([1, 3])
+    c1, c2, _ = st.columns([2, 1, 3])
     with c1:
         coll_no = st.number_input('Coll. No.', min_value=1,
                                   value=st.session_state.coll_no, step=1,
                                   key=f'cno_{fk}')
+    with c2:
+        st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
+        st.markdown('<span class="auto-badge">⚡ AUTO +1</span>', unsafe_allow_html=True)
     st.divider()
 
     # ── Locality ──────────────────────────────────────────────────────────────
     section_label('採集地點')
-    loc_short = (st.selectbox('地名簡稱', loc_names,
-                              index=None, key=f'loc_{fk}',
-                              placeholder='搜尋；清單中沒有可直接打字新增',
-                              accept_new_options=True) or '').strip()
+
+    def has_en(s): return '(' in str(s)
+    def combine(cn, en):
+        cn = (cn or '').strip()
+        if not cn or has_en(cn): return cn
+        en = (en or '').strip()
+        return f'{cn} ({en})' if en else cn
+
+    # Row 1: 地名簡稱 | 縣市 | 鄉鎮（永遠顯示）
+    lc1, lc2, lc3 = st.columns(3)
+    with lc1:
+        loc_short = (st.selectbox('地名簡稱', loc_names,
+                                  index=None, key=f'loc_{fk}',
+                                  placeholder='搜尋；清單沒有可直接打入',
+                                  accept_new_options=True) or '').strip()
+    with lc2:
+        county = (st.selectbox('縣市', counties, index=None, key=f'county_{fk}',
+                               placeholder='選擇或輸入縣市',
+                               accept_new_options=True) or '').strip()
+    with lc3:
+        tw_opts = tw_by_county.get(county, [])
+        township = (st.selectbox('鄉鎮（先選縣市）', tw_opts, index=None, key=f'tw_{fk}',
+                                 placeholder='選擇或輸入鄉鎮',
+                                 accept_new_options=True) or '').strip()
+
     sync_locality_field()
 
-    if st.session_state.get('is_new_loc'):
-        st.markdown('<span class="new-badge">新地名 — 填地點英文、選縣市 / 鄉鎮（無英文者可補），送出後自動加入清單</span>',
-                    unsafe_allow_html=True)
+    # Row 2: 英文地名（永遠顯示）
+    en1, en2, en3 = st.columns(3)
+    with en1:
+        place_en = st.text_input('地點英文', key=f'place_en_{fk}',
+                                 placeholder='例 Tienchih trail').strip()
+    with en2:
+        county_en = st.text_input('縣市英文', key=f'county_en_{fk}',
+                                  placeholder='例 Nantou county').strip()
+    with en3:
+        township_en = st.text_input('鄉鎮英文', key=f'tw_en_{fk}',
+                                    placeholder='例 Jenai township').strip()
 
-        def has_en(s):
-            return '(' in s
-        def combine(cn, en):
-            cn = cn.strip()
-            if not cn or has_en(cn):
-                return cn
-            en = en.strip()
-            return f'{cn} ({en})' if en else cn
-
-        place_en = st.text_input('地點英文（選填）', key=f'place_en_{fk}',
-                                 placeholder='例 Tianchih trail').strip()
-
-        lc1, lc2 = st.columns(2)
-        with lc1:
-            county = (st.selectbox('縣市', counties, index=None, key=f'county_{fk}',
-                                   placeholder='選擇或輸入縣市',
-                                   accept_new_options=True) or '').strip()
-            county_en = '' if (not county or has_en(county)) else \
-                st.text_input('縣市英文', key=f'county_en_{fk}',
-                              placeholder='例 Nantou county')
-        with lc2:
-            tw_opts = tw_by_county.get(county, [])
-            township = (st.selectbox('鄉鎮（先選縣市）', tw_opts, index=None, key=f'tw_{fk}',
-                                     placeholder='選擇或輸入鄉鎮',
-                                     accept_new_options=True) or '').strip()
-            township_en = '' if (not township or has_en(township)) else \
-                st.text_input('鄉鎮英文', key=f'tw_en_{fk}',
-                              placeholder='例 Caotun town')
-
-        county_full   = combine(county, county_en or '')
-        township_full = combine(township, township_en or '')
+    # Row 3: 完整地名 — 若非既有地名則由欄位組合
+    if st.session_state.get('is_new_loc') or (not loc_short and (county or township)):
+        county_full   = combine(county, county_en)
+        township_full = combine(township, township_en)
         place_full    = combine(loc_short, place_en)
-        full_loc = ', '.join([p for p in [county_full, township_full, place_full] if p])
-        if full_loc:
-            st.caption(f'→ 完整地名：`{full_loc}`')
-    else:
-        full_loc = st.text_input('完整地名', key=f'fullloc_{fk}',
-                                 placeholder='選地名後自動帶入').strip()
+        computed = ', '.join(p for p in [county_full, township_full, place_full] if p)
+        if computed:
+            st.session_state[f'fullloc_{fk}'] = computed
+
+    full_loc = st.text_input('🗺 完整地名', key=f'fullloc_{fk}',
+                             placeholder='選地名後自動帶入，或由上方欄位組合').strip()
+
+    if st.session_state.get('is_new_loc'):
+        st.markdown('<span class="new-badge">新地名 — 送出後自動加入清單</span>',
+                    unsafe_allow_html=True)
     st.divider()
 
     # ── Species ───────────────────────────────────────────────────────────────
@@ -1185,7 +1213,7 @@ with st.container(border=True):
     note = st.text_area('Note', placeholder='備註（可留空）', height=80, key=f'note_{fk}')
 
     # ── Submit ─────────────────────────────────────────────────────────────────
-    submit = st.button('儲存修改' if edit_mode else '新增記錄',
+    submit = st.button('💾 儲存修改' if edit_mode else '💾 新增記錄',
                        type='primary', use_container_width=True)
     if edit_mode:
         if st.button('取消編輯', use_container_width=True):
@@ -1255,7 +1283,7 @@ with st.container(border=True):
         total = len(records)
 
         query = st.text_input(
-            '搜尋（學名 / 中文名 / 科名 / 地點 / 採集人 / 編號，可多關鍵字以空格分隔）',
+            '🔍 學名 / 中文名 / 科名 / 地點 / 採集人 / 編號（空格分隔多關鍵字）',
             key='record_search').strip()
 
         if query:
