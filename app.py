@@ -141,6 +141,15 @@ input, textarea,
   border: 5px solid var(--green) !important;
   box-shadow: 0 0 14px rgba(52,240,106,.45) !important;
 }
+/* number input: apply focus border to outer container so it covers full width */
+[data-testid="stNumberInputContainer"]:focus-within {
+  border: 5px solid var(--green) !important;
+  box-shadow: 0 0 14px rgba(52,240,106,.45) !important;
+}
+[data-testid="stNumberInputContainer"]:focus-within [data-baseweb="input"] {
+  border: none !important;
+  box-shadow: none !important;
+}
 [data-testid="stNumberInput"] input {
   font-family: var(--font-mono) !important; color: var(--green) !important;
 }
