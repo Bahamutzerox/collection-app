@@ -1404,10 +1404,11 @@ with st.container(border=True, key='records_panel'):
 
         # ── 表格（點選列觸發 rerun）────────────────────────────────────────────
         SHOW_COLS = ['Coll. No.', 'Scientific Name', 'Common Name', 'Habit',
-                     'Locality and habitat description', 'Date', 'Collector']
+                     'Locality and habitat description', 'Locality', 'Date', 'Collector']
         df_show = display_df[[c for c in SHOW_COLS if c in display_df.columns]].copy()
         df_show = df_show.rename(columns={
             'Locality and habitat description': '地點',
+            'Locality': '地點',
             'Common Name': '中文名',
             'Collector': '採集人',
         })
@@ -1418,21 +1419,18 @@ with st.container(border=True, key='records_panel'):
             use_container_width=True,
             hide_index=True,
             key='records_df',
-            column_config={
-                'Coll. No.': st.column_config.NumberColumn('NO.', width='small', format='%d'),
-                'Scientific Name': st.column_config.TextColumn('Scientific Name', width='medium'),
-                '中文名': st.column_config.TextColumn('中文名', width='small'),
-                'Habit': st.column_config.TextColumn('Habit', width='small'),
-                '地點': st.column_config.TextColumn('地點', width='large'),
-                'Date': st.column_config.TextColumn('Date', width='small'),
-                '採集人': st.column_config.TextColumn('採集人', width='small'),
-            }
         )
 
         # ── 選中列 action bar ─────────────────────────────────────────────────
         sel_row = None
-        sel_idxs = event.selection.rows if hasattr(event, 'selection') else []
-        if sel_idxs:
+        try:
+            sel_idxs = list(event.selection.rows)
+        except Exception:
+            try:
+                sel_idxs = list(event.selection['rows'])
+            except Exception:
+                sel_idxs = []
+        if sel_idxs and sel_idxs[0] < len(display_df):
             sel_row = display_df.iloc[sel_idxs[0]]
 
         if sel_row is not None:
@@ -1458,4 +1456,6 @@ with st.container(border=True, key='records_panel'):
                         st.rerun()
 
     except Exception as e:
-        st.warning(f'無法載入記錄：{e}')
+        import traceback
+        st.error(f'錯誤：{type(e).__name__}: {e}')
+        st.code(traceback.format_exc())
