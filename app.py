@@ -170,12 +170,12 @@ input, textarea,
   background: var(--green) !important;
   color: var(--void) !important;
   border-color: var(--green) !important;
-  box-shadow: 5px 5px 0 rgba(7,9,12,.6) !important;
+  box-shadow: 0 0 14px rgba(52,240,106,.4) !important;
 }
 .stButton > button[kind="primary"]:hover {
   background: var(--green-bright) !important;
   border-color: var(--green-bright) !important;
-  box-shadow: 5px 5px 0 rgba(7,9,12,.6), var(--glow-green-lg) !important;
+  box-shadow: var(--glow-green-lg) !important;
 }
 .stButton > button[kind="secondary"] {
   color: var(--red) !important; border-color: var(--red) !important;
@@ -1235,13 +1235,12 @@ with st.container(border=True, key='entry_panel'):
                                   accept_new_options=True) or '')
     with e2:
         identifier = st.text_input('Identifier', placeholder='鑑定人', key=f'ident_{fk}')
-    st.divider()
 
     # ── Note ──────────────────────────────────────────────────────────────────
     note = st.text_area('Note', placeholder='備註（可留空）', height=80, key=f'note_{fk}')
 
     # ── Submit ─────────────────────────────────────────────────────────────────
-    submit = st.button('💾 儲存修改' if edit_mode else '💾 新增記錄',
+    submit = st.button('儲存修改' if edit_mode else '新增記錄',
                        type='primary', use_container_width=True)
     if edit_mode:
         if st.button('取消編輯', use_container_width=True):
