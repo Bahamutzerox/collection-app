@@ -144,7 +144,23 @@ input, textarea,
 [data-testid="stNumberInput"] input {
   font-family: var(--font-mono) !important; color: var(--green) !important;
 }
-[data-testid="stNumberInput"] button { display: none !important; }
+/* number input native step buttons */
+[data-testid="stNumberInputStepDown"] {
+  background: transparent !important;
+  border: 2px solid var(--slate) !important;
+  color: var(--slate) !important;
+  border-radius: 4px !important;
+  width: 36px !important; height: 36px !important;
+  padding: 0 !important;
+}
+[data-testid="stNumberInputStepUp"] {
+  background: var(--green) !important;
+  border: 2px solid var(--green) !important;
+  color: var(--void) !important;
+  border-radius: 4px !important;
+  width: 36px !important; height: 36px !important;
+  padding: 0 !important;
+}
 /* select dropdown background */
 [data-baseweb="popover"] { background: var(--panel-2) !important; border: 2px solid var(--line-strong) !important; }
 
@@ -179,39 +195,6 @@ input, textarea,
 }
 .stButton > button[kind="secondary"]:hover {
   background: var(--red) !important; color: var(--void) !important;
-}
-/* Coll. No. minus button — override secondary red to slate */
-.st-key-cno_minus .stButton > button,
-.st-key-cno_minus .stButton > button:hover {
-  color: var(--slate) !important;
-  border-color: var(--slate) !important;
-  background: transparent !important;
-}
-/* Coll. No. row — force minus/plus into 40×40 squares */
-.st-key-cno_row [data-testid="stColumn"]:nth-child(2),
-.st-key-cno_row [data-testid="stColumn"]:nth-child(3) {
-  flex: 0 0 40px !important;
-  width: 40px !important;
-  min-width: 0 !important;
-  max-width: 40px !important;
-  padding: 0 !important;
-}
-.st-key-cno_row [data-testid="stColumn"]:nth-child(2) .stButton,
-.st-key-cno_row [data-testid="stColumn"]:nth-child(3) .stButton,
-.st-key-cno_row [data-testid="stColumn"]:nth-child(2) .stButton > button,
-.st-key-cno_row [data-testid="stColumn"]:nth-child(3) .stButton > button {
-  width: 40px !important;
-  min-width: 0 !important;
-  max-width: 40px !important;
-  height: 40px !important;
-  min-height: 0 !important;
-  max-height: 40px !important;
-  padding: 0 !important;
-  font-size: 18px !important;
-  line-height: 40px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
 }
 
 /* ── Dividers ────────────────────────────────────────────────────────────── */
@@ -1127,26 +1110,14 @@ with st.container(border=True, key='entry_panel'):
         st.info(f'正在編輯第 {st.session_state.edit_row} 列；修改後按「儲存修改」寫回，或按「取消編輯」放棄。')
 
     # ── Coll. No. ─────────────────────────────────────────────────────────────
-    with st.container(key='cno_row'):
-        c_num, c_minus, c_plus, c_badge = st.columns([3, 0.5, 0.5, 3])
-        with c_num:
-            coll_no = st.number_input('Coll. No.', min_value=1,
-                                      value=st.session_state.coll_no, step=1,
-                                      key=f'cno_{fk}')
-        with c_minus:
-            st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
-            with st.container(key='cno_minus'):
-                if st.button('−', key='cno_minus_btn', use_container_width=True):
-                    st.session_state.coll_no = max(1, int(coll_no) - 1)
-                    st.rerun()
-        with c_plus:
-            st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
-            if st.button('+', key='cno_plus', type='primary', use_container_width=True):
-                st.session_state.coll_no = int(coll_no) + 1
-                st.rerun()
-        with c_badge:
-            st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
-            st.markdown('<span class="auto-badge">⚡ AUTO +1</span>', unsafe_allow_html=True)
+    c_num, c_badge = st.columns([2, 4])
+    with c_num:
+        coll_no = st.number_input('Coll. No.', min_value=1,
+                                  value=st.session_state.coll_no, step=1,
+                                  key=f'cno_{fk}')
+    with c_badge:
+        st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
+        st.markdown('<span class="auto-badge">⚡ AUTO +1</span>', unsafe_allow_html=True)
     st.divider()
 
     # ── Locality ──────────────────────────────────────────────────────────────
