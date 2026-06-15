@@ -267,6 +267,16 @@ code {
   border-bottom:1px solid var(--green-dim); margin:0 0 4px; }
 .sel-bar-no { color:var(--green); font-family:var(--font-mono); font-size:12px; letter-spacing:.06em; }
 .sel-bar-sci { color:var(--slate-bright); font-style:italic; font-size:13px; }
+/* Table row select buttons */
+[class*="st-key-tbl_sel_"] button {
+  width:24px !important; height:24px !important; min-width:0 !important;
+  padding:0 !important; font-size:11px !important; line-height:1 !important;
+  background:transparent !important; border:1px solid transparent !important;
+  color:var(--muted) !important; border-radius:0 !important;
+}
+[class*="st-key-tbl_sel_"] button:hover {
+  border-color:var(--green-dim) !important; color:var(--green) !important;
+}
 /* Icon buttons in action row */
 .st-key-edit_btn_icon button,
 .st-key-del_btn_icon  button {
@@ -1480,7 +1490,7 @@ with st.container(border=True, key='records_panel'):
                         st.session_state['_sel_idx'] = None
                         st.rerun()
 
-        # ── 表格（checkbox 勾選觸發 rerun）────────────────────────────────────
+        # ── 自製表格（完整顏色控制；st.dataframe canvas 不讀 CSS）──────────
         SHOW_COLS = ['Coll. No.', 'Scientific Name', 'Common Name', 'Habit',
                      'Locality and habitat description', 'Locality', 'Date', 'Collector']
         df_show = display_df[[c for c in SHOW_COLS if c in display_df.columns]].copy()
@@ -1490,26 +1500,56 @@ with st.container(border=True, key='records_panel'):
             'Common Name': '中文名',
             'Collector': '採集人',
         })
-        event = st.dataframe(
-            df_show,
-            on_select='rerun',
-            use_container_width=True,
-            hide_index=True,
-            key='records_df',
-        )
+        VCOLS = [c for c in ['Coll. No.', 'Scientific Name', '中文名', 'Habit', '地點', 'Date', '採集人']
+                 if c in df_show.columns]
+        COL_W = {'Coll. No.': 0.65, 'Scientific Name': 2.8, '中文名': 1.3,
+                 'Habit': 0.9, '地點': 2.4, 'Date': 1.2, '採集人': 1.3}
+        COL_LABEL = {'Coll. No.': 'NO.', 'Scientific Name': 'SCIENTIFIC NAME',
+                     '中文名': '中文名', 'Habit': 'HABIT', '地點': '地點',
+                     'Date': 'DATE', '採集人': '採集人'}
+        COL_COLOR = {'Coll. No.': '#34f06a', 'Scientific Name': '#9dbfcc',
+                     '中文名': '#7a9bab', 'Habit': '#7a9bab',
+                     '地點': '#5a7880', 'Date': '#7a9bab', '採集人': '#7a9bab'}
+        cw = [0.32] + [COL_W.get(c, 1.0) for c in VCOLS]
 
-        # ── 更新 session state；selection 有變化時 rerun 讓 bar 出現在表格上方 ──
-        try:
-            sel_idxs = list(event.selection.rows)
-        except Exception:
-            try:
-                sel_idxs = list(event.selection['rows'])
-            except Exception:
-                sel_idxs = []
-        new_idx = sel_idxs[0] if (sel_idxs and sel_idxs[0] < len(display_df)) else None
-        if new_idx != stored_idx:
-            st.session_state['_sel_idx'] = new_idx
-            st.rerun()
+        # 表頭
+        HDR_STYLE = ('font-family:"JetBrains Mono",monospace;font-size:11px;'
+                     'color:#34f06a;letter-spacing:.08em;text-transform:uppercase;'
+                     'padding:8px 0 6px;border-bottom:2px solid rgba(52,240,106,.3);')
+        hdr = st.columns(cw)
+        with hdr[0]:
+            st.markdown(f'<div style="{HDR_STYLE}"></div>', unsafe_allow_html=True)
+        for j, vcol in enumerate(VCOLS):
+            with hdr[j + 1]:
+                st.markdown(f'<div style="{HDR_STYLE}">{COL_LABEL.get(vcol, vcol)}</div>',
+                            unsafe_allow_html=True)
+
+        # 資料列
+        for i in range(len(df_show)):
+            row = df_show.iloc[i]
+            is_sel = (stored_idx == i)
+            bg = 'rgba(52,240,106,.07)' if is_sel else ('rgba(22,30,40,.5)' if i % 2 == 0 else 'transparent')
+            rcols = st.columns(cw)
+            with rcols[0]:
+                with st.container(key=f'tbl_sel_{i}'):
+                    if st.button('▶' if is_sel else '·', key=f'btn_tbl_{i}', help='選取'):
+                        st.session_state['_sel_idx'] = None if is_sel else i
+                        st.rerun()
+            for j, vcol in enumerate(VCOLS):
+                with rcols[j + 1]:
+                    val = str(row.get(vcol, '') or '')
+                    if vcol == 'Coll. No.':
+                        try: val = str(int(float(val)))
+                        except: pass
+                    if vcol == '地點': val = val[:44]
+                    italic = 'font-style:italic;' if vcol == 'Scientific Name' else ''
+                    color = COL_COLOR.get(vcol, '#9dbfcc')
+                    st.markdown(
+                        f'<div style="font-family:\'JetBrains Mono\',monospace;'
+                        f'font-size:12px;color:{color};{italic}background:{bg};'
+                        f'padding:7px 2px;white-space:nowrap;overflow:hidden;'
+                        f'text-overflow:ellipsis;">{val}</div>',
+                        unsafe_allow_html=True)
 
     except Exception as e:
         st.warning(f'無法載入記錄：{e}')
