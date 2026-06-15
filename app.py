@@ -270,10 +270,12 @@ code {
 .st-key-edit_btn_icon .stButton > button,
 .st-key-del_btn_icon  .stButton > button {
   width:36px !important; height:36px !important; min-width:0 !important;
-  padding:0 !important; font-size:16px !important; line-height:1 !important;
+  padding:0 !important; font-size:18px !important; line-height:1 !important;
+  font-variant-emoji: text !important;
 }
-.st-key-del_btn_icon .stButton > button { color:var(--red) !important; border-color:var(--red) !important; }
-.st-key-del_btn_icon .stButton > button:hover { background:var(--red) !important; color:var(--void) !important; }
+.st-key-edit_btn_icon .stButton > button { color:var(--green) !important; border-color:var(--green) !important; }
+.st-key-del_btn_icon  .stButton > button { color:var(--red) !important; border-color:var(--red) !important; }
+.st-key-del_btn_icon  .stButton > button:hover { background:var(--red) !important; color:var(--void) !important; }
 .habit-chip {
   display:inline-block; border-radius:2px; padding:2px 8px;
   font-size:11px; font-family:'JetBrains Mono',monospace; letter-spacing:.04em;
@@ -1443,12 +1445,12 @@ with st.container(border=True, key='records_panel'):
                 c_e, c_d, _ = st.columns([1, 1, 20])
                 with c_e:
                     with st.container(key='edit_btn_icon'):
-                        if st.button('✏', key='btn_row_edit', help='帶入上方表單編輯'):
+                        if st.button('✎', key='btn_row_edit', help='帶入上方表單編輯'):
                             enter_edit_mode(sel_row)
                             st.rerun()
                 with c_d:
                     with st.container(key='del_btn_icon'):
-                        if st.button('🗑', key='btn_row_del', help='刪除此筆'):
+                        if st.button('✕', key='btn_row_del', help='刪除此筆'):
                             delete_record(int(sel_row['_row']))
                             st.cache_data.clear()
                             st.rerun()
