@@ -315,7 +315,7 @@ code {
   box-shadow: var(--glow-green); flex-shrink: 0; display: inline-block;
 }
 .pix-header-title {
-  font-family: var(--font-pixel); font-size: 20px; color: var(--slate);
+  font-family: var(--font-pixel); font-size: 40px; color: var(--slate);
   letter-spacing: .04em; text-shadow: var(--glow-text-slate); line-height: 1.2; display: block;
 }
 .pix-header-sub {
