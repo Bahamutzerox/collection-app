@@ -539,6 +539,24 @@ table.rec-tbl td {
         if (b) b.click();
       });
     });
+    // Collapse hsel_wrap and its single-child ancestor chain to remove blank space.
+    // Walks up the DOM until it finds an element with siblings (e.g. the table sibling),
+    // then stops — so only the button branch is folded, not the rest of the layout.
+    // height:0 + overflow:hidden hides visually but buttons still respond to b.click().
+    var wrap = document.querySelector('.st-key-hsel_wrap');
+    if (wrap && wrap.style.height !== '0px') {
+      var el = wrap;
+      for (var jj = 0; jj < 12; jj++) {
+        if (!el) break;
+        el.style.setProperty('height',   '0',      'important');
+        el.style.setProperty('overflow', 'hidden',  'important');
+        el.style.setProperty('margin',   '0',       'important');
+        el.style.setProperty('padding',  '0',       'important');
+        var par = el.parentElement;
+        if (!par || par.children.length > 1) break;
+        el = par;
+      }
+    }
   }
   update();
   setTimeout(update, 300);
