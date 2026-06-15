@@ -1283,7 +1283,7 @@ with st.container(border=True):
         total = len(records)
 
         query = st.text_input(
-            '🔍 學名 / 中文名 / 科名 / 地點 / 採集人 / 編號（空格分隔多關鍵字）',
+            '學名 / 中文名 / 科名 / 地點 / 採集人 / 編號（空格分隔多關鍵字）',
             key='record_search').strip()
 
         if query:
