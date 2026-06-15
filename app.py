@@ -295,9 +295,6 @@ code {
   background: var(--panel) !important;
 }
 
-/* ── Records dataframe – zoom down canvas text size ─────────────────────── */
-[data-testid="stDataFrame"] { zoom: 0.82 !important; }
-
 /* ── New-item badge ──────────────────────────────────────────────────────── */
 .new-badge {
   display: inline-block; background: var(--amber-dim); color: var(--amber);
