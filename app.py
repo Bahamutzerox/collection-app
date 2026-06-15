@@ -97,6 +97,13 @@ html, body, [class*="css"], .stApp, input, textarea, button, select {
 footer { visibility: hidden !important; }
 
 /* ── Panels — mimic the DS Panel component ───────────────────────────────── */
+/* Streamlit puts its own border on the direct child div (emotion CSS).
+   Clear that, then apply our styled border to the wrapper itself. */
+[data-testid="stVerticalBlockBorderWrapper"] > div {
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
 [data-testid="stVerticalBlockBorderWrapper"] {
   background: var(--panel) !important;
   border-radius: 0 !important;
