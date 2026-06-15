@@ -145,21 +145,9 @@ input, textarea,
   font-family: var(--font-mono) !important; color: var(--green) !important;
 }
 /* number input native step buttons */
-[data-testid="stNumberInputStepDown"] {
-  background: transparent !important;
-  border: 2px solid var(--slate) !important;
-  color: var(--slate) !important;
-  border-radius: 4px !important;
-  width: 36px !important; height: 36px !important;
-  padding: 0 !important;
-}
+[data-testid="stNumberInputStepDown"],
 [data-testid="stNumberInputStepUp"] {
-  background: var(--green) !important;
-  border: 2px solid var(--green) !important;
-  color: var(--void) !important;
-  border-radius: 4px !important;
-  width: 36px !important; height: 36px !important;
-  padding: 0 !important;
+  display: none !important;
 }
 /* select dropdown background */
 [data-baseweb="popover"] { background: var(--panel-2) !important; border: 2px solid var(--line-strong) !important; }
@@ -191,9 +179,15 @@ input, textarea,
   box-shadow: var(--glow-green-lg) !important;
 }
 .stButton > button[kind="secondary"] {
-  color: var(--red) !important; border-color: var(--red) !important;
+  color: var(--slate) !important; border-color: var(--slate) !important;
 }
 .stButton > button[kind="secondary"]:hover {
+  background: var(--slate) !important; color: var(--void) !important;
+}
+.st-key-del_btn_wrap .stButton > button {
+  color: var(--red) !important; border-color: var(--red) !important;
+}
+.st-key-del_btn_wrap .stButton > button:hover {
   background: var(--red) !important; color: var(--void) !important;
 }
 
@@ -1110,11 +1104,21 @@ with st.container(border=True, key='entry_panel'):
         st.info(f'正在編輯第 {st.session_state.edit_row} 列；修改後按「儲存修改」寫回，或按「取消編輯」放棄。')
 
     # ── Coll. No. ─────────────────────────────────────────────────────────────
-    c_num, c_badge = st.columns([2, 4])
+    c_num, c_minus, c_plus, c_badge = st.columns([3, 0.5, 0.5, 4])
     with c_num:
         coll_no = st.number_input('Coll. No.', min_value=1,
                                   value=st.session_state.coll_no, step=1,
                                   key=f'cno_{fk}')
+    with c_minus:
+        st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
+        if st.button('−', key='cno_m'):
+            st.session_state.coll_no = max(1, int(coll_no) - 1)
+            st.rerun()
+    with c_plus:
+        st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
+        if st.button('+', key='cno_p', type='primary'):
+            st.session_state.coll_no = int(coll_no) + 1
+            st.rerun()
     with c_badge:
         st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
         st.markdown('<span class="auto-badge">⚡ AUTO +1</span>', unsafe_allow_html=True)
@@ -1369,7 +1373,8 @@ with st.container(border=True, key='records_panel'):
                         enter_edit_mode(row)
                         st.rerun()
                 with bd:
-                    if st.button('刪除此筆', type='secondary', use_container_width=True, key='btn_del'):
+                  with st.container(key='del_btn_wrap'):
+                    if st.button('刪除此筆', use_container_width=True, key='btn_del'):
                         excel_row = int(row['_row'])
                         delete_record(excel_row)
                         st.cache_data.clear()
