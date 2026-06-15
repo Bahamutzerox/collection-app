@@ -50,7 +50,7 @@ st.markdown("""
 }
 
 :root{
-  --void:#1c2430; --bg:#2c3c50; --panel:#4c6888; --panel-2:#6c94c0; --panel-3:#8cb8e8;
+  --void:#0e1218; --bg:#161e28; --panel:#263444; --panel-2:#364a60; --panel-3:#466080;
   --ink:#d4dee3; --ink-bright:#f3f8fa; --muted:#7d909a; --faint:#4f5e68;
   --green:#34f06a; --green-bright:#7dffa6; --green-deep:#18a847;
   --green-dim:rgba(52,240,106,.16); --green-faint:rgba(52,240,106,.07); --green-glow:rgba(52,240,106,.45);
@@ -86,8 +86,8 @@ html, body, [class*="css"], .stApp, input, textarea, button, select {
 [data-testid="stAppViewContainer"] {
   background-color: var(--bg) !important;
   background-image:
-    linear-gradient(rgba(157,191,204,.20) 1px, transparent 1px),
-    linear-gradient(90deg,rgba(157,191,204,.20) 1px, transparent 1px) !important;
+    linear-gradient(rgba(157,191,204,.10) 1px, transparent 1px),
+    linear-gradient(90deg,rgba(157,191,204,.10) 1px, transparent 1px) !important;
   background-size: 40px 40px !important;
 }
 [data-testid="stHeader"]  { background: transparent !important; border-bottom: none !important; }
@@ -539,32 +539,32 @@ def _make_flora_html():
     }
     SLATE, GREEN, MUTED = '#9dbfcc', '#34f06a', '#7d909a'
     PLACEMENTS = [
-        ('leaf',      7,   5,  4.4, -18, 0.75, SLATE),
-        ('flower',   17,  11,  3.6,  12, 0.65, GREEN),
-        ('pencil',   30,   6,  4.0,   6, 0.60, MUTED),
-        ('sprout',   43,   9,  4.2,  -8, 0.72, SLATE),
-        ('notebook', 56,   5,  4.0, -10, 0.65, SLATE),
-        ('lens',     69,  10,  4.2, -12, 0.72, GREEN),
-        ('press',    82,   7,  3.6,   6, 0.60, MUTED),
-        ('leaf',     93,  12,  3.4,  26, 0.65, SLATE),
-        ('scissors',  8,  90,  3.8,  10, 0.72, SLATE),
-        ('specimen', 21,  94,  3.8,  -8, 0.65, SLATE),
-        ('pen',      34,  91,  4.0,   8, 0.65, MUTED),
-        ('mushroom', 47,  95,  3.8,   6, 0.60, GREEN),
-        ('vial',     60,  90,  3.6,  -6, 0.65, MUTED),
-        ('flower',   73,  94,  3.4,  16, 0.65, SLATE),
-        ('leaf',     86,  91,  3.6, -22, 0.68, GREEN),
-        ('notebook', 95,  88,  3.2,  10, 0.58, MUTED),
-        ('sprout',    4,  34,  3.2,  10, 0.50, SLATE),
-        ('leaf',      5,  62,  3.0, -26, 0.45, MUTED),
-        ('flower',    3,  78,  3.0,  14, 0.42, GREEN),
-        ('lens',     96,  38,  3.0,  18, 0.50, MUTED),
-        ('pencil',   97,  56,  3.2, -18, 0.45, SLATE),
-        ('specimen', 95,  70,  3.0,  12, 0.42, MUTED),
-        ('leaf',     38,  30,  3.0,  32, 0.25, MUTED),
-        ('flower',   55,  72,  2.8, -16, 0.25, SLATE),
-        ('vial',     28,  68,  2.6,   8, 0.20, MUTED),
-        ('scissors', 64,  26,  2.8, -10, 0.25, SLATE),
+        ('leaf',      7,   5,  4.4, -18, 0.40, SLATE),
+        ('flower',   17,  11,  3.6,  12, 0.34, GREEN),
+        ('pencil',   30,   6,  4.0,   6, 0.32, MUTED),
+        ('sprout',   43,   9,  4.2,  -8, 0.38, SLATE),
+        ('notebook', 56,   5,  4.0, -10, 0.34, SLATE),
+        ('lens',     69,  10,  4.2, -12, 0.38, GREEN),
+        ('press',    82,   7,  3.6,   6, 0.32, MUTED),
+        ('leaf',     93,  12,  3.4,  26, 0.34, SLATE),
+        ('scissors',  8,  90,  3.8,  10, 0.38, SLATE),
+        ('specimen', 21,  94,  3.8,  -8, 0.34, SLATE),
+        ('pen',      34,  91,  4.0,   8, 0.34, MUTED),
+        ('mushroom', 47,  95,  3.8,   6, 0.32, GREEN),
+        ('vial',     60,  90,  3.6,  -6, 0.34, MUTED),
+        ('flower',   73,  94,  3.4,  16, 0.34, SLATE),
+        ('leaf',     86,  91,  3.6, -22, 0.36, GREEN),
+        ('notebook', 95,  88,  3.2,  10, 0.30, MUTED),
+        ('sprout',    4,  34,  3.2,  10, 0.26, SLATE),
+        ('leaf',      5,  62,  3.0, -26, 0.24, MUTED),
+        ('flower',    3,  78,  3.0,  14, 0.22, GREEN),
+        ('lens',     96,  38,  3.0,  18, 0.26, MUTED),
+        ('pencil',   97,  56,  3.2, -18, 0.24, SLATE),
+        ('specimen', 95,  70,  3.0,  12, 0.22, MUTED),
+        ('leaf',     38,  30,  3.0,  32, 0.13, MUTED),
+        ('flower',   55,  72,  2.8, -16, 0.13, SLATE),
+        ('vial',     28,  68,  2.6,   8, 0.11, MUTED),
+        ('scissors', 64,  26,  2.8, -10, 0.13, SLATE),
     ]
 
     def build_svg(rows, color):
@@ -601,15 +601,15 @@ def _make_flora_html():
     scanlines = (
         '<div style="position:fixed;inset:0;pointer-events:none;z-index:2;'
         'background-image:repeating-linear-gradient('
-        '0deg,rgba(0,0,0,.06) 0px,rgba(0,0,0,.06) 1px,transparent 1px,transparent 3px);'
-        'opacity:.18;mix-blend-mode:multiply;"></div>'
+        '0deg,rgba(0,0,0,.12) 0px,rgba(0,0,0,.12) 1px,transparent 1px,transparent 3px);'
+        'opacity:.35;mix-blend-mode:multiply;"></div>'
     )
 
     vignette = (
         '<div style="position:fixed;inset:0;pointer-events:none;z-index:2;'
         'background:'
-        'radial-gradient(120% 90% at 50% 0%,transparent 55%,rgba(0,0,0,.11) 100%),'
-        'radial-gradient(120% 100% at 50% 100%,transparent 45%,rgba(0,0,0,.14) 100%);">'
+        'radial-gradient(120% 90% at 50% 0%,transparent 55%,rgba(0,0,0,.22) 100%),'
+        'radial-gradient(120% 100% at 50% 100%,transparent 45%,rgba(0,0,0,.28) 100%);">'
         '</div>'
     )
 
