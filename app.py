@@ -334,7 +334,7 @@ code {
 /* Panel titles (injected before container content) */
 .pix-panel-hdr {
   display: flex; align-items: center; gap: 8px;
-  font-family: var(--font-pixel); font-size: 13px; color: var(--green);
+  font-family: var(--font-pixel); font-size: 18px; color: var(--green);
   letter-spacing: .04em; text-shadow: var(--glow-text);
   padding: 10px 12px 8px;
   border-bottom: 1px solid var(--green-dim);
