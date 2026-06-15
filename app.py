@@ -267,32 +267,6 @@ code {
   border-bottom:1px solid var(--green-dim); margin:0 0 4px; }
 .sel-bar-no { color:var(--green); font-family:var(--font-mono); font-size:12px; letter-spacing:.06em; }
 .sel-bar-sci { color:var(--slate-bright); font-style:italic; font-size:13px; }
-/* Hidden row-select buttons – collapse the wrapper; children accessible via JS .click() */
-.st-key-hsel_wrap {
-  height:0 !important; overflow:hidden !important;
-  margin:0 !important; padding:0 !important;
-}
-/* Records HTML table – override Streamlit's own table CSS with !important */
-table.rec-tbl { border-collapse:collapse !important; width:100%; }
-table.rec-tbl th {
-  padding:10px 14px !important;
-  font-family:"JetBrains Mono",monospace !important;
-  font-size:11px !important;
-  color:#34f06a !important;
-  letter-spacing:.08em !important;
-  text-transform:uppercase !important;
-  text-align:left !important;
-  border-bottom:2px solid rgba(52,240,106,.3) !important;
-  background:#131a22 !important;
-  white-space:nowrap !important;
-}
-table.rec-tbl td {
-  padding:8px 12px !important;
-  font-family:"JetBrains Mono",monospace !important;
-  font-size:12px !important;
-  vertical-align:middle !important;
-  border-bottom:1px solid rgba(157,191,204,.06) !important;
-}
 /* Icon buttons in action row */
 .st-key-edit_btn_icon button,
 .st-key-del_btn_icon  button {
@@ -461,7 +435,6 @@ table.rec-tbl td {
 (function applyPanelBorders() {
   var GREEN = '#34f06a', GREEN_GLOW = '5px 5px 0 rgba(7,9,12,.6), 0 0 18px rgba(52,240,106,.25)';
   var SLATE = '#9dbfcc', SLATE_GLOW = '5px 5px 0 rgba(7,9,12,.6), 0 0 14px rgba(157,191,204,.2)';
-  var rowClickSet = new Set();
   function styleStep(btn, bg, color, border, label) {
     btn.style.setProperty('width',           '36px',   'important');
     btn.style.setProperty('height',          '36px',   'important');
@@ -528,34 +501,6 @@ table.rec-tbl td {
       if (t === '✎') iconBtnDeep(btn, GREEN);
       if (t === '✕') iconBtnDeep(btn, '#ff4d5e');
     });
-    document.querySelectorAll('tr[class*="rec-row-"]').forEach(function(tr) {
-      if (rowClickSet.has(tr)) return;
-      rowClickSet.add(tr);
-      tr.addEventListener('click', function() {
-        var m = this.className.match(/rec-row-(\d+)/);
-        if (!m) return;
-        var c = document.querySelector('.st-key-hsel_' + m[1]);
-        var b = c && c.querySelector('button');
-        if (b) b.click();
-      });
-    });
-    // Collapse hsel_wrap and every ancestor that does NOT yet contain the rec-tbl.
-    // Stops the moment an ancestor also contains the table (common ancestor of both).
-    var wrap = document.querySelector('.st-key-hsel_wrap');
-    if (wrap && wrap.style.height !== '0px') {
-      var el = wrap;
-      for (var jj = 0; jj < 20; jj++) {
-        if (!el || el === document.body) break;
-        if (el !== wrap && el.querySelector && el.querySelector('.rec-tbl')) break;
-        el.style.setProperty('height',     '0', 'important');
-        el.style.setProperty('min-height', '0', 'important');
-        el.style.setProperty('max-height', '0', 'important');
-        el.style.setProperty('overflow', 'hidden', 'important');
-        el.style.setProperty('margin',  '0', 'important');
-        el.style.setProperty('padding', '0', 'important');
-        el = el.parentElement;
-      }
-    }
   }
   update();
   setTimeout(update, 300);
@@ -1528,7 +1473,7 @@ with st.container(border=True, key='records_panel'):
                         st.session_state['_sel_idx'] = None
                         st.rerun()
 
-        # ── 自製表格（完整顏色控制；st.dataframe canvas 不讀 CSS）──────────
+        # ── 表格（st.dataframe 內建 row selection）────────────────────────────
         SHOW_COLS = ['Coll. No.', 'Scientific Name', 'Common Name', 'Habit',
                      'Locality and habitat description', 'Locality', 'Date', 'Collector']
         df_show = display_df[[c for c in SHOW_COLS if c in display_df.columns]].copy()
@@ -1540,74 +1485,33 @@ with st.container(border=True, key='records_panel'):
         })
         VCOLS = [c for c in ['Coll. No.', 'Scientific Name', '中文名', 'Habit', '地點', 'Date', '採集人']
                  if c in df_show.columns]
-        COL_W = {'Coll. No.': 0.65, 'Scientific Name': 2.8, '中文名': 1.3,
-                 'Habit': 0.9, '地點': 2.4, 'Date': 1.2, '採集人': 1.3}
-        COL_LABEL = {'Coll. No.': 'NO.', 'Scientific Name': 'SCIENTIFIC NAME',
-                     '中文名': '中文名', 'Habit': 'HABIT', '地點': '地點',
-                     'Date': 'DATE', '採集人': '採集人'}
-        COL_COLOR = {'Coll. No.': '#34f06a', 'Scientific Name': '#9dbfcc',
-                     '中文名': '#7a9bab', 'Habit': '#7a9bab',
-                     '地點': '#5a7880', 'Date': '#7a9bab', '採集人': '#7a9bab'}
-        HABIT_COLOR = {
-            'tree':       ('#34f06a', 'rgba(52,240,106,.12)'),
-            'shrub':      ('#4de1ff', 'rgba(77,225,255,.12)'),
-            'herb':       ('#ffc83d', 'rgba(255,200,61,.12)'),
-            'fern':       ('#b87fff', 'rgba(184,127,255,.12)'),
-            'epiphyte':   ('#ff5cc8', 'rgba(255,92,200,.12)'),
-            'grass':      ('#9dbfcc', 'rgba(157,191,204,.10)'),
-            'moss':       ('#4de1ff', 'rgba(77,225,255,.10)'),
-            'palm':       ('#ffc83d', 'rgba(255,200,61,.10)'),
-            'aquatic':    ('#4de1ff', 'rgba(77,225,255,.10)'),
-            'flowering':  ('#ff5cc8', 'rgba(255,92,200,.12)'),
-            'vine':       ('#b87fff', 'rgba(184,127,255,.12)'),
+        COL_W = {'Coll. No.': 65, 'Scientific Name': 240, '中文名': 110,
+                 'Habit': 90, '地點': 260, 'Date': 110, '採集人': 80}
+
+        col_cfg = {
+            c: st.column_config.TextColumn(
+                label={'Coll. No.': 'NO.', 'Scientific Name': 'SCIENTIFIC NAME',
+                       '中文名': '中文名', 'Habit': 'HABIT', '地點': '地點',
+                       'Date': 'DATE', '採集人': '採集人'}.get(c, c),
+                width=COL_W.get(c, 100),
+            )
+            for c in VCOLS
         }
-        def habit_badge(h):
-            h = (h or '').strip().lower()
-            c, bg_c = HABIT_COLOR.get(h, ('#9dbfcc', 'rgba(157,191,204,.08)'))
-            return (f'<span style="font-family:\'JetBrains Mono\',monospace;font-size:11px;'
-                    f'color:{c};background:{bg_c};border:1px solid {c};border-radius:0;'
-                    f'padding:2px 8px;white-space:nowrap;">{h}</span>') if h else ''
-        # 隱藏的選取按鈕（包在 hsel_wrap，由 JS click() 觸發；height:0 不佔版面）
-        with st.container(key='hsel_wrap'):
-            for i in range(len(df_show)):
-                with st.container(key=f'hsel_{i}'):
-                    if st.button('·', key=f'bhsel_{i}'):
-                        st.session_state['_sel_idx'] = None if stored_idx == i else i
-                        st.rerun()
 
-        # HTML 表格（overflow-x: auto 橫向捲軸；CSS 由 rec-tbl 類管理）
-        tbl = ('<div style="overflow-x:auto;border:2px solid rgba(157,191,204,.12);">'
-               '<table class="rec-tbl" style="min-width:900px;">'
-               '<thead><tr>')
-        for vcol in VCOLS:
-            tbl += f'<th>{COL_LABEL.get(vcol, vcol)}</th>'
-        tbl += '</tr></thead><tbody>'
+        event = st.dataframe(
+            df_show[VCOLS],
+            column_config=col_cfg,
+            use_container_width=True,
+            hide_index=True,
+            on_select='rerun',
+            selection_mode='single-row',
+            key='records_df',
+        )
 
-        for i in range(len(df_show)):
-            row = df_show.iloc[i]
-            is_sel = (stored_idx == i)
-            bg = 'rgba(52,240,106,.07)' if is_sel else ('rgba(22,30,40,.5)' if i % 2 == 0 else 'transparent')
-            tbl += f'<tr class="rec-row-{i}" style="cursor:pointer;background:{bg};">'
-            for vcol in VCOLS:
-                val = str(row.get(vcol, '') or '')
-                if vcol == 'Coll. No.':
-                    try: val = str(int(float(val)))
-                    except: pass
-                    tbl += f'<td style="color:#34f06a;white-space:nowrap;">{val}</td>'
-                elif vcol == 'Scientific Name':
-                    tbl += (f'<td style="color:#9dbfcc;font-style:italic;'
-                            f'max-width:260px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">{val}</td>')
-                elif vcol == 'Habit':
-                    tbl += f'<td>{habit_badge(val)}</td>'
-                elif vcol == '地點':
-                    tbl += (f'<td style="color:#5a7880;max-width:300px;'
-                            f'overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">{val}</td>')
-                else:
-                    color = COL_COLOR.get(vcol, '#9dbfcc')
-                    tbl += (f'<td style="color:{color};white-space:nowrap;">{val}</td>')
-            tbl += '</tr>'
-        tbl += '</tbody></table></div>'
-        st.markdown(tbl, unsafe_allow_html=True)
+        new_sel = event.selection.rows[0] if event.selection.rows else None
+        if new_sel != stored_idx:
+            st.session_state['_sel_idx'] = new_sel
+            st.rerun()
 
     except Exception as e:
         st.warning(f'無法載入記錄：{e}')
