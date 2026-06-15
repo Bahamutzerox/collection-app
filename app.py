@@ -267,10 +267,31 @@ code {
   border-bottom:1px solid var(--green-dim); margin:0 0 4px; }
 .sel-bar-no { color:var(--green); font-family:var(--font-mono); font-size:12px; letter-spacing:.06em; }
 .sel-bar-sci { color:var(--slate-bright); font-style:italic; font-size:13px; }
-/* Hidden row-select buttons (off-screen, triggered via JS) */
-[class*="st-key-hsel_"] {
-  position:absolute !important; left:-9999px !important;
-  width:1px !important; height:1px !important; overflow:hidden !important;
+/* Hidden row-select buttons – collapse the wrapper; children accessible via JS .click() */
+.st-key-hsel_wrap {
+  height:0 !important; overflow:hidden !important;
+  margin:0 !important; padding:0 !important;
+}
+/* Records HTML table – override Streamlit's own table CSS with !important */
+table.rec-tbl { border-collapse:collapse !important; width:100%; }
+table.rec-tbl th {
+  padding:10px 14px !important;
+  font-family:"JetBrains Mono",monospace !important;
+  font-size:11px !important;
+  color:#34f06a !important;
+  letter-spacing:.08em !important;
+  text-transform:uppercase !important;
+  text-align:left !important;
+  border-bottom:2px solid rgba(52,240,106,.3) !important;
+  background:#131a22 !important;
+  white-space:nowrap !important;
+}
+table.rec-tbl td {
+  padding:8px 12px !important;
+  font-family:"JetBrains Mono",monospace !important;
+  font-size:12px !important;
+  vertical-align:middle !important;
+  border-bottom:1px solid rgba(157,191,204,.06) !important;
 }
 /* Icon buttons in action row */
 .st-key-edit_btn_icon button,
@@ -440,6 +461,7 @@ code {
 (function applyPanelBorders() {
   var GREEN = '#34f06a', GREEN_GLOW = '5px 5px 0 rgba(7,9,12,.6), 0 0 18px rgba(52,240,106,.25)';
   var SLATE = '#9dbfcc', SLATE_GLOW = '5px 5px 0 rgba(7,9,12,.6), 0 0 14px rgba(157,191,204,.2)';
+  var rowClickSet = new Set();
   function styleStep(btn, bg, color, border, label) {
     btn.style.setProperty('width',           '36px',   'important');
     btn.style.setProperty('height',          '36px',   'important');
@@ -506,12 +528,13 @@ code {
       if (t === '✎') iconBtnDeep(btn, GREEN);
       if (t === '✕') iconBtnDeep(btn, '#ff4d5e');
     });
-    document.querySelectorAll('tr[data-row-idx]').forEach(function(tr) {
-      if (tr.dataset.hasClick) return;
-      tr.dataset.hasClick = '1';
+    document.querySelectorAll('tr[class*="rec-row-"]').forEach(function(tr) {
+      if (rowClickSet.has(tr)) return;
+      rowClickSet.add(tr);
       tr.addEventListener('click', function() {
-        var i = this.getAttribute('data-row-idx');
-        var c = document.querySelector('.st-key-hsel_' + i);
+        var m = this.className.match(/rec-row-(\d+)/);
+        if (!m) return;
+        var c = document.querySelector('.st-key-hsel_' + m[1]);
         var b = c && c.querySelector('button');
         if (b) b.click();
       });
@@ -1527,50 +1550,44 @@ with st.container(border=True, key='records_panel'):
             return (f'<span style="font-family:\'JetBrains Mono\',monospace;font-size:11px;'
                     f'color:{c};background:{bg_c};border:1px solid {c};border-radius:0;'
                     f'padding:2px 8px;white-space:nowrap;">{h}</span>') if h else ''
-        # 隱藏的選取按鈕（off-screen，由 JS click() 觸發）
-        for i in range(len(df_show)):
-            with st.container(key=f'hsel_{i}'):
-                if st.button('·', key=f'bhsel_{i}'):
-                    st.session_state['_sel_idx'] = None if stored_idx == i else i
-                    st.rerun()
+        # 隱藏的選取按鈕（包在 hsel_wrap，由 JS click() 觸發；height:0 不佔版面）
+        with st.container(key='hsel_wrap'):
+            for i in range(len(df_show)):
+                with st.container(key=f'hsel_{i}'):
+                    if st.button('·', key=f'bhsel_{i}'):
+                        st.session_state['_sel_idx'] = None if stored_idx == i else i
+                        st.rerun()
 
-        # HTML 表格（overflow-x: auto 橫向捲軸）
-        _M = '"JetBrains Mono",monospace'
-        _TH = (f'padding:10px 14px;font-family:{_M};font-size:11px;color:#34f06a;'
-               f'letter-spacing:.08em;text-transform:uppercase;text-align:left;'
-               f'border-bottom:2px solid rgba(52,240,106,.3);background:#131a22;'
-               f'white-space:nowrap;position:sticky;top:0;')
-        _TD = f'padding:8px 12px;font-family:{_M};font-size:12px;vertical-align:middle;'
-
+        # HTML 表格（overflow-x: auto 橫向捲軸；CSS 由 rec-tbl 類管理）
         tbl = ('<div style="overflow-x:auto;border:2px solid rgba(157,191,204,.12);">'
-               '<table style="border-collapse:collapse;min-width:900px;width:100%;">'
+               '<table class="rec-tbl" style="min-width:900px;">'
                '<thead><tr>')
         for vcol in VCOLS:
-            tbl += f'<th style="{_TH}">{COL_LABEL.get(vcol, vcol)}</th>'
+            tbl += f'<th>{COL_LABEL.get(vcol, vcol)}</th>'
         tbl += '</tr></thead><tbody>'
 
         for i in range(len(df_show)):
             row = df_show.iloc[i]
             is_sel = (stored_idx == i)
             bg = 'rgba(52,240,106,.07)' if is_sel else ('rgba(22,30,40,.5)' if i % 2 == 0 else 'transparent')
-            tbl += f'<tr data-row-idx="{i}" style="cursor:pointer;background:{bg};">'
+            tbl += f'<tr class="rec-row-{i}" style="cursor:pointer;background:{bg};">'
             for vcol in VCOLS:
                 val = str(row.get(vcol, '') or '')
                 if vcol == 'Coll. No.':
                     try: val = str(int(float(val)))
                     except: pass
-                    tbl += f'<td style="{_TD}color:#34f06a;white-space:nowrap;">{val}</td>'
+                    tbl += f'<td style="color:#34f06a;white-space:nowrap;">{val}</td>'
                 elif vcol == 'Scientific Name':
-                    tbl += (f'<td style="{_TD}color:#9dbfcc;font-style:italic;'
+                    tbl += (f'<td style="color:#9dbfcc;font-style:italic;'
                             f'max-width:260px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">{val}</td>')
                 elif vcol == 'Habit':
-                    tbl += f'<td style="{_TD}">{habit_badge(val)}</td>'
+                    tbl += f'<td>{habit_badge(val)}</td>'
                 elif vcol == '地點':
-                    tbl += (f'<td style="{_TD}color:#5a7880;max-width:300px;'
+                    tbl += (f'<td style="color:#5a7880;max-width:300px;'
                             f'overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">{val}</td>')
                 else:
                     color = COL_COLOR.get(vcol, '#9dbfcc')
-                    tbl += (f'<td style="{_TD}color:{color};white-space:nowrap;">{val}</td>')
+                    tbl += (f'<td style="color:{color};white-space:nowrap;">{val}</td>')
             tbl += '</tr>'
         tbl += '</tbody></table></div>'
         st.markdown(tbl, unsafe_allow_html=True)
