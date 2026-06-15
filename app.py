@@ -630,7 +630,7 @@ def _make_flora_html():
         '<div style="position:fixed;inset:0;pointer-events:none;z-index:2;'
         'background-image:repeating-linear-gradient('
         '0deg,rgba(0,0,0,.12) 0px,rgba(0,0,0,.12) 1px,transparent 1px,transparent 3px);'
-        'opacity:.35;mix-blend-mode:multiply;"></div>'
+        'opacity:.25;"></div>'
     )
 
     vignette = (
