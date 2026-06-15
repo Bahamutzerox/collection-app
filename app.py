@@ -144,10 +144,7 @@ input, textarea,
 [data-testid="stNumberInput"] input {
   font-family: var(--font-mono) !important; color: var(--green) !important;
 }
-[data-testid="stNumberInput"] button {
-  border: 2px solid var(--line-strong) !important;
-  border-radius: 0 !important; color: var(--green) !important;
-}
+[data-testid="stNumberInput"] button { display: none !important; }
 /* select dropdown background */
 [data-baseweb="popover"] { background: var(--panel-2) !important; border: 2px solid var(--line-strong) !important; }
 
@@ -1097,12 +1094,22 @@ with st.container(border=True, key='entry_panel'):
         st.info(f'正在編輯第 {st.session_state.edit_row} 列；修改後按「儲存修改」寫回，或按「取消編輯」放棄。')
 
     # ── Coll. No. ─────────────────────────────────────────────────────────────
-    c1, c2, _ = st.columns([2, 1, 3])
-    with c1:
+    c_num, c_minus, c_plus, c_badge = st.columns([2.5, 0.4, 0.4, 2.5])
+    with c_num:
         coll_no = st.number_input('Coll. No.', min_value=1,
                                   value=st.session_state.coll_no, step=1,
                                   key=f'cno_{fk}')
-    with c2:
+    with c_minus:
+        st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
+        if st.button('−', key='cno_minus', use_container_width=True):
+            st.session_state.coll_no = max(1, int(coll_no) - 1)
+            st.rerun()
+    with c_plus:
+        st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
+        if st.button('+', key='cno_plus', type='primary', use_container_width=True):
+            st.session_state.coll_no = int(coll_no) + 1
+            st.rerun()
+    with c_badge:
         st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
         st.markdown('<span class="auto-badge">⚡ AUTO +1</span>', unsafe_allow_html=True)
     st.divider()
