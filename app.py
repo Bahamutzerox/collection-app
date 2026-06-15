@@ -100,16 +100,16 @@ footer { visibility: hidden !important; }
 .st-key-entry_panel,
 .st-key-records_panel {
   border-radius: 0 !important;
-  padding: 4px 4px 8px !important;
+  padding: 16px 20px 20px !important;
 }
 .st-key-entry_panel {
   background: var(--panel) !important;
-  border: 2px solid var(--green) !important;
+  border: 3px solid var(--green) !important;
   box-shadow: 5px 5px 0 rgba(7,9,12,.6), 0 0 18px rgba(52,240,106,.25) !important;
 }
 .st-key-records_panel {
   background: var(--panel) !important;
-  border: 2px solid var(--slate) !important;
+  border: 3px solid var(--slate) !important;
   box-shadow: 5px 5px 0 rgba(7,9,12,.6), 0 0 14px rgba(157,191,204,.2) !important;
 }
 
@@ -396,12 +396,12 @@ code {
     var ep = document.querySelector('.st-key-entry_panel');
     var rp = document.querySelector('.st-key-records_panel');
     if (ep) {
-      ep.style.setProperty('border', '2px solid ' + GREEN, 'important');
+      ep.style.setProperty('border', '3px solid ' + GREEN, 'important');
       ep.style.setProperty('box-shadow', GREEN_GLOW, 'important');
       ep.style.setProperty('border-radius', '0', 'important');
     }
     if (rp) {
-      rp.style.setProperty('border', '2px solid ' + SLATE, 'important');
+      rp.style.setProperty('border', '3px solid ' + SLATE, 'important');
       rp.style.setProperty('box-shadow', SLATE_GLOW, 'important');
       rp.style.setProperty('border-radius', '0', 'important');
     }
@@ -1164,7 +1164,7 @@ with st.container(border=True, key='entry_panel'):
         if computed:
             st.session_state[f'fullloc_{fk}'] = computed
 
-    full_loc = st.text_input('🗺 完整地名', key=f'fullloc_{fk}',
+    full_loc = st.text_input('完整地名', key=f'fullloc_{fk}',
                              placeholder='選地名後自動帶入，或由上方欄位組合').strip()
 
     if st.session_state.get('is_new_loc'):
