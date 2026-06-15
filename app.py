@@ -103,12 +103,12 @@ footer { visibility: hidden !important; }
   padding: 16px 20px 20px !important;
 }
 .st-key-entry_panel {
-  background: var(--panel) !important;
+  background: transparent !important;
   border: 3px solid var(--green) !important;
   box-shadow: 5px 5px 0 rgba(7,9,12,.6), 0 0 18px rgba(52,240,106,.25) !important;
 }
 .st-key-records_panel {
-  background: var(--panel) !important;
+  background: transparent !important;
   border: 3px solid var(--slate) !important;
   box-shadow: 5px 5px 0 rgba(7,9,12,.6), 0 0 14px rgba(157,191,204,.2) !important;
 }
