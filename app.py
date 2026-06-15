@@ -1316,44 +1316,33 @@ with st.container(border=True):
         display_df = result_rev.head(N_SHOW)
 
         if query:
-            st.caption(f'找到 {matched:,} 筆，顯示前 {N_SHOW} 筆 · 點選下方表格列可選取以編輯 / 刪除')
+            st.caption(f'找到 {matched:,} 筆，顯示前 {N_SHOW} 筆')
         else:
-            st.caption(f'共 {total:,} 筆，以下顯示最近 {N_SHOW} 筆 · 點選下方表格列可選取以編輯 / 刪除')
+            st.caption(f'共 {total:,} 筆，以下顯示最近 {N_SHOW} 筆')
 
         # ── 自訂 HTML 顯示表格 ────────────────────────────────────────────────
         st.markdown(_render_records_table(display_df), unsafe_allow_html=True)
 
-        # ── 選取列（精簡 dataframe，僅保留互動功能）──────────────────────────
-        sel_cols = ['Coll. No.', 'Scientific Name', 'Date']
-        sel_data = display_df[[c for c in sel_cols if c in display_df.columns]].fillna('').astype(str).replace('nan', '')
-        event = st.dataframe(
-            sel_data, hide_index=True, key='rec_table',
-            on_select='rerun', selection_mode='single-row',
-            column_config={
-                'Coll. No.':      st.column_config.Column(width=90),
-                'Scientific Name': st.column_config.Column(width=300),
-                'Date':           st.column_config.Column(width=120),
-            },
-        )
-
-        sel = event.selection.rows
-        if sel and sel[0] < len(display_df):
-            row = display_df.iloc[sel[0]]
-            excel_row = int(row['_row'])
-            label = (f"#{row.get('Coll. No.','')}　"
-                     f"{row.get('Scientific Name','') or '(無學名)'}　"
-                     f"{row.get('Date','') or ''}")
-            be, bd = st.columns(2)
-            with be:
-                if st.button('編輯此筆（帶到上方表單）', use_container_width=True):
-                    enter_edit_mode(row)
-                    st.rerun()
-            with bd:
-                if st.button('刪除此筆', type='secondary', use_container_width=True):
-                    delete_record(excel_row)
-                    st.cache_data.clear()
-                    st.success(f'已刪除：{label}')
-                    st.rerun()
-            st.caption(f'選取：{label}')
+        # ── 刪除 / 編輯（輸入採集號碼）────────────────────────────────────────
+        with st.expander('✏️ 編輯 / 🗑 刪除記錄'):
+            target_no = st.number_input('輸入採集號碼 (Coll. No.)', min_value=1, step=1, key='del_no')
+            match = records[records['Coll. No.'] == target_no] if 'Coll. No.' in records.columns else pd.DataFrame()
+            if not match.empty:
+                row = match.iloc[0]
+                st.markdown(f"**{row.get('Scientific Name','(無學名)')}**　{row.get('Date','')}　{row.get('Locality','')}", unsafe_allow_html=False)
+                be, bd = st.columns(2)
+                with be:
+                    if st.button('帶入上方表單編輯', use_container_width=True, key='btn_edit'):
+                        enter_edit_mode(row)
+                        st.rerun()
+                with bd:
+                    if st.button('刪除此筆', type='secondary', use_container_width=True, key='btn_del'):
+                        excel_row = int(row['_row'])
+                        delete_record(excel_row)
+                        st.cache_data.clear()
+                        st.success(f'已刪除採集號 #{target_no}')
+                        st.rerun()
+            else:
+                st.caption('找不到此採集號碼')
     except Exception as e:
         st.warning(f'無法載入記錄：{e}')
