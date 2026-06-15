@@ -1425,11 +1425,11 @@ with st.container(border=True, key='records_panel'):
 <div style="display:flex;gap:28px;justify-content:flex-end;align-items:flex-end;padding-top:6px;height:100%;">
   <div style="text-align:center;">
     <div style="font-family:var(--font-mono);font-size:9px;color:var(--muted);letter-spacing:.14em;margin-bottom:4px;">≡ 共計</div>
-    <div style="font-family:var(--font-pixel);font-size:20px;color:var(--green);line-height:1;">{total:,}</div>
+    <div style="font-family:var(--font-pixel);font-size:40px;color:var(--green);line-height:1;">{total:,}</div>
   </div>
   <div style="text-align:center;">
     <div style="font-family:var(--font-mono);font-size:9px;color:var(--muted);letter-spacing:.14em;margin-bottom:4px;">◎ 符合</div>
-    <div style="font-family:var(--font-pixel);font-size:20px;color:{matched_color};line-height:1;">{matched:,}</div>
+    <div style="font-family:var(--font-pixel);font-size:40px;color:{matched_color};line-height:1;">{matched:,}</div>
   </div>
 </div>""", unsafe_allow_html=True)
 
