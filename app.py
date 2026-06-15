@@ -267,15 +267,10 @@ code {
   border-bottom:1px solid var(--green-dim); margin:0 0 4px; }
 .sel-bar-no { color:var(--green); font-family:var(--font-mono); font-size:12px; letter-spacing:.06em; }
 .sel-bar-sci { color:var(--slate-bright); font-style:italic; font-size:13px; }
-/* Table row select buttons */
-[class*="st-key-tbl_sel_"] button {
-  width:24px !important; height:24px !important; min-width:0 !important;
-  padding:0 !important; font-size:11px !important; line-height:1 !important;
-  background:transparent !important; border:1px solid transparent !important;
-  color:var(--muted) !important; border-radius:0 !important;
-}
-[class*="st-key-tbl_sel_"] button:hover {
-  border-color:var(--green-dim) !important; color:var(--green) !important;
+/* Hidden row-select buttons (off-screen, triggered via JS) */
+[class*="st-key-hsel_"] {
+  position:absolute !important; left:-9999px !important;
+  width:1px !important; height:1px !important; overflow:hidden !important;
 }
 /* Icon buttons in action row */
 .st-key-edit_btn_icon button,
@@ -511,12 +506,15 @@ code {
       if (t === '✎') iconBtnDeep(btn, GREEN);
       if (t === '✕') iconBtnDeep(btn, '#ff4d5e');
     });
-    document.querySelectorAll('[data-testid="stDataFrame"] [role="columnheader"]').forEach(function(el) {
-      el.style.setProperty('color', GREEN, 'important');
-      el.style.setProperty('font-family', '"JetBrains Mono",monospace', 'important');
-      el.style.setProperty('font-size', '11px', 'important');
-      el.style.setProperty('letter-spacing', '.08em', 'important');
-      el.style.setProperty('text-transform', 'uppercase', 'important');
+    document.querySelectorAll('tr[data-row-idx]').forEach(function(tr) {
+      if (tr.dataset.hasClick) return;
+      tr.dataset.hasClick = '1';
+      tr.addEventListener('click', function() {
+        var i = this.getAttribute('data-row-idx');
+        var c = document.querySelector('.st-key-hsel_' + i);
+        var b = c && c.querySelector('button');
+        if (b) b.click();
+      });
     });
   }
   update();
@@ -1529,49 +1527,53 @@ with st.container(border=True, key='records_panel'):
             return (f'<span style="font-family:\'JetBrains Mono\',monospace;font-size:11px;'
                     f'color:{c};background:{bg_c};border:1px solid {c};border-radius:0;'
                     f'padding:2px 8px;white-space:nowrap;">{h}</span>') if h else ''
-        cw = [0.32] + [COL_W.get(c, 1.0) for c in VCOLS]
+        # 隱藏的選取按鈕（off-screen，由 JS click() 觸發）
+        for i in range(len(df_show)):
+            with st.container(key=f'hsel_{i}'):
+                if st.button('·', key=f'bhsel_{i}'):
+                    st.session_state['_sel_idx'] = None if stored_idx == i else i
+                    st.rerun()
 
-        # 表頭
-        HDR_STYLE = ('font-family:"JetBrains Mono",monospace;font-size:11px;'
-                     'color:#34f06a;letter-spacing:.08em;text-transform:uppercase;'
-                     'padding:8px 0 6px;border-bottom:2px solid rgba(52,240,106,.3);')
-        hdr = st.columns(cw)
-        with hdr[0]:
-            st.markdown(f'<div style="{HDR_STYLE}"></div>', unsafe_allow_html=True)
-        for j, vcol in enumerate(VCOLS):
-            with hdr[j + 1]:
-                st.markdown(f'<div style="{HDR_STYLE}">{COL_LABEL.get(vcol, vcol)}</div>',
-                            unsafe_allow_html=True)
+        # HTML 表格（overflow-x: auto 橫向捲軸）
+        _M = '"JetBrains Mono",monospace'
+        _TH = (f'padding:10px 14px;font-family:{_M};font-size:11px;color:#34f06a;'
+               f'letter-spacing:.08em;text-transform:uppercase;text-align:left;'
+               f'border-bottom:2px solid rgba(52,240,106,.3);background:#131a22;'
+               f'white-space:nowrap;position:sticky;top:0;')
+        _TD = f'padding:8px 12px;font-family:{_M};font-size:12px;vertical-align:middle;'
 
-        # 資料列
+        tbl = ('<div style="overflow-x:auto;border:2px solid rgba(157,191,204,.12);">'
+               '<table style="border-collapse:collapse;min-width:900px;width:100%;">'
+               '<thead><tr>')
+        for vcol in VCOLS:
+            tbl += f'<th style="{_TH}">{COL_LABEL.get(vcol, vcol)}</th>'
+        tbl += '</tr></thead><tbody>'
+
         for i in range(len(df_show)):
             row = df_show.iloc[i]
             is_sel = (stored_idx == i)
             bg = 'rgba(52,240,106,.07)' if is_sel else ('rgba(22,30,40,.5)' if i % 2 == 0 else 'transparent')
-            rcols = st.columns(cw)
-            with rcols[0]:
-                with st.container(key=f'tbl_sel_{i}'):
-                    if st.button('▶' if is_sel else '·', key=f'btn_tbl_{i}', help='選取'):
-                        st.session_state['_sel_idx'] = None if is_sel else i
-                        st.rerun()
-            for j, vcol in enumerate(VCOLS):
-                with rcols[j + 1]:
-                    val = str(row.get(vcol, '') or '')
-                    if vcol == 'Coll. No.':
-                        try: val = str(int(float(val)))
-                        except: pass
-                    if vcol == 'Habit':
-                        inner = habit_badge(val)
-                        clip = ''
-                    else:
-                        italic = 'font-style:italic;' if vcol == 'Scientific Name' else ''
-                        color = COL_COLOR.get(vcol, '#9dbfcc')
-                        inner = (f'<span style="font-family:\'JetBrains Mono\',monospace;'
-                                 f'font-size:12px;color:{color};{italic}">{val}</span>')
-                        clip = 'overflow:hidden;white-space:nowrap;text-overflow:ellipsis;'
-                    st.markdown(
-                        f'<div style="background:{bg};padding:5px 2px;{clip}">{inner}</div>',
-                        unsafe_allow_html=True)
+            tbl += f'<tr data-row-idx="{i}" style="cursor:pointer;background:{bg};">'
+            for vcol in VCOLS:
+                val = str(row.get(vcol, '') or '')
+                if vcol == 'Coll. No.':
+                    try: val = str(int(float(val)))
+                    except: pass
+                    tbl += f'<td style="{_TD}color:#34f06a;white-space:nowrap;">{val}</td>'
+                elif vcol == 'Scientific Name':
+                    tbl += (f'<td style="{_TD}color:#9dbfcc;font-style:italic;'
+                            f'max-width:260px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">{val}</td>')
+                elif vcol == 'Habit':
+                    tbl += f'<td style="{_TD}">{habit_badge(val)}</td>'
+                elif vcol == '地點':
+                    tbl += (f'<td style="{_TD}color:#5a7880;max-width:300px;'
+                            f'overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">{val}</td>')
+                else:
+                    color = COL_COLOR.get(vcol, '#9dbfcc')
+                    tbl += (f'<td style="{_TD}color:{color};white-space:nowrap;">{val}</td>')
+            tbl += '</tr>'
+        tbl += '</tbody></table></div>'
+        st.markdown(tbl, unsafe_allow_html=True)
 
     except Exception as e:
         st.warning(f'無法載入記錄：{e}')
