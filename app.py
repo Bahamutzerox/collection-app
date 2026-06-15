@@ -261,7 +261,7 @@ code {
 .rec-row.sel td { background:rgba(52,240,106,0.1) !important; border-bottom-color:var(--green-dim) !important; }
 .rec-table tbody tr:nth-child(even) td { background:rgba(28,40,52,0.4); }
 /* Selection action bar */
-.st-key-_sel_channel { display:none !important; }
+.st-key-_sel_channel { position:absolute !important; left:-9999px !important; top:0 !important; width:1px !important; height:1px !important; overflow:hidden !important; opacity:0 !important; }
 .sel-bar { display:flex; align-items:center; gap:12px; padding:9px 14px;
   background:rgba(52,240,106,0.08); border-top:1px solid var(--green-dim);
   border-bottom:1px solid var(--green-dim); margin:0 0 4px; }
@@ -456,6 +456,27 @@ code {
       btn.dataset.relabeled = '1';
     }
   }
+  function pushSel(no) {
+    var ch = document.querySelector('.st-key-_sel_channel input[type="number"]');
+    if (!ch) return;
+    var cur = parseInt(ch.value) || 0;
+    var val = (cur === no) ? 0 : no;
+    var niv = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+    niv.call(ch, String(val));
+    ch.dispatchEvent(new Event('input', {bubbles: true}));
+    ch.dispatchEvent(new Event('change', {bubbles: true}));
+  }
+  function bindRows() {
+    document.querySelectorAll('tr.rec-row').forEach(function(tr) {
+      if (tr.dataset.bound) return;
+      tr.dataset.bound = '1';
+      tr.style.cursor = 'pointer';
+      tr.addEventListener('click', function() {
+        var no = parseInt(tr.getAttribute('data-no')) || 0;
+        if (no) pushSel(no);
+      });
+    });
+  }
   function update() {
     var ep = document.querySelector('.st-key-entry_panel');
     var rp = document.querySelector('.st-key-records_panel');
@@ -474,6 +495,7 @@ code {
     var su = cno && cno.querySelector('[data-testid="stNumberInputStepUp"]');
     if (sd) styleStep(sd, 'transparent', SLATE, '2px solid ' + SLATE, '−');
     if (su) styleStep(su, GREEN, '#07090c', '2px solid ' + GREEN, '+');
+    bindRows();
   }
   update();
   setTimeout(update, 300);
@@ -761,7 +783,7 @@ def _render_records_table(df, sel_no=0):
         cn_s  = cn if cn and cn != 'nan' else ''
         is_sel = (no == sel_no and sel_no > 0)
         row_cls = 'rec-row sel' if is_sel else 'rec-row'
-        rows += (f'<tr class="{row_cls}" onclick="window.selectRow&&window.selectRow({no})">'
+        rows += (f'<tr class="{row_cls}" data-no="{no}">'
                  f'<td class="rec-no">{no}</td>'
                  f'<td class="rec-sci">{sci_html}</td>'
                  f'<td class="rec-common">{cn_s}</td>'
