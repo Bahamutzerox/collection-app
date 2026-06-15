@@ -1439,24 +1439,25 @@ with st.container(border=True, key='records_panel'):
             sel_cno = int(sel_row.get('Coll. No.', 0) or 0)
             sel_sci = sel_row.get('Scientific Name', '') or ''
             with bar_slot.container():
+                # buttons above the bar, side by side
+                c_e, c_d, _ = st.columns([1, 1, 20])
+                with c_e:
+                    with st.container(key='edit_btn_icon'):
+                        if st.button('✏', key='btn_row_edit', help='帶入上方表單編輯'):
+                            enter_edit_mode(sel_row)
+                            st.rerun()
+                with c_d:
+                    with st.container(key='del_btn_icon'):
+                        if st.button('🗑', key='btn_row_del', help='刪除此筆'):
+                            delete_record(int(sel_row['_row']))
+                            st.cache_data.clear()
+                            st.rerun()
                 st.markdown(
                     f'<div class="sel-bar">'
                     f'<span class="sel-bar-no">✓ 已選 #{sel_cno}</span>'
                     f'<em class="sel-bar-sci">{sel_sci}</em>'
                     f'</div>',
                     unsafe_allow_html=True)
-                _, c_edit_col, c_del_col = st.columns([10, 1, 1])
-                with c_edit_col:
-                    with st.container(key='edit_btn_icon'):
-                        if st.button('✏', key='btn_row_edit', help='帶入上方表單編輯'):
-                            enter_edit_mode(sel_row)
-                            st.rerun()
-                with c_del_col:
-                    with st.container(key='del_btn_icon'):
-                        if st.button('🗑', key='btn_row_del', help='刪除此筆'):
-                            delete_record(int(sel_row['_row']))
-                            st.cache_data.clear()
-                            st.rerun()
 
     except Exception as e:
         st.warning(f'無法載入記錄：{e}')
