@@ -466,6 +466,21 @@ code {
     var su = cno && cno.querySelector('[data-testid="stNumberInputStepUp"]');
     if (sd) styleStep(sd, 'transparent', SLATE, '2px solid ' + SLATE, '−');
     if (su) styleStep(su, GREEN, '#07090c', '2px solid ' + GREEN, '+');
+    function iconBtn(btn, color) {
+      btn.style.setProperty('color',        color,   'important');
+      btn.style.setProperty('border-color', color,   'important');
+      btn.style.setProperty('background',   'transparent', 'important');
+      btn.style.setProperty('width',        '36px',  'important');
+      btn.style.setProperty('height',       '36px',  'important');
+      btn.style.setProperty('min-width',    '0',     'important');
+      btn.style.setProperty('padding',      '0',     'important');
+      btn.style.setProperty('font-size',    '18px',  'important');
+      btn.style.setProperty('line-height',  '1',     'important');
+    }
+    var eb = document.querySelector('.st-key-edit_btn_icon button');
+    var db = document.querySelector('.st-key-del_btn_icon button');
+    if (eb) iconBtn(eb, GREEN);
+    if (db) iconBtn(db, '#ff4d5e');
   }
   update();
   setTimeout(update, 300);
