@@ -138,7 +138,7 @@ input, textarea,
 [data-baseweb="input"]:focus-within,
 [data-baseweb="select"] > div:focus-within,
 [data-baseweb="textarea"]:focus-within {
-  border: 3px solid var(--green) !important;
+  border: 5px solid var(--green) !important;
   box-shadow: 0 0 14px rgba(52,240,106,.45) !important;
 }
 [data-testid="stNumberInput"] input {
