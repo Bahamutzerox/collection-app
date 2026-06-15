@@ -187,6 +187,20 @@ input, textarea,
   border-color: var(--slate) !important;
   background: transparent !important;
 }
+/* Coll. No. row — fix minus/plus columns to 44px so they're compact squares */
+.st-key-cno_row [data-testid="stColumn"]:nth-child(2),
+.st-key-cno_row [data-testid="stColumn"]:nth-child(3) {
+  flex: 0 0 44px !important;
+  width: 44px !important;
+  min-width: 44px !important;
+  max-width: 44px !important;
+  padding: 0 2px !important;
+}
+.st-key-cno_row [data-testid="stColumn"]:nth-child(2) .stButton > button,
+.st-key-cno_row [data-testid="stColumn"]:nth-child(3) .stButton > button {
+  padding: 6px 0 !important;
+  font-size: 18px !important;
+}
 
 /* ── Dividers ────────────────────────────────────────────────────────────── */
 hr, [data-testid="stDivider"] {
@@ -1101,25 +1115,26 @@ with st.container(border=True, key='entry_panel'):
         st.info(f'正在編輯第 {st.session_state.edit_row} 列；修改後按「儲存修改」寫回，或按「取消編輯」放棄。')
 
     # ── Coll. No. ─────────────────────────────────────────────────────────────
-    c_num, c_minus, c_plus, c_badge = st.columns([3, 0.5, 0.5, 2.5])
-    with c_num:
-        coll_no = st.number_input('Coll. No.', min_value=1,
-                                  value=st.session_state.coll_no, step=1,
-                                  key=f'cno_{fk}')
-    with c_minus:
-        st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
-        with st.container(key='cno_minus'):
-            if st.button('−', key='cno_minus_btn', use_container_width=True):
-                st.session_state.coll_no = max(1, int(coll_no) - 1)
+    with st.container(key='cno_row'):
+        c_num, c_minus, c_plus, c_badge = st.columns([3, 0.5, 0.5, 3])
+        with c_num:
+            coll_no = st.number_input('Coll. No.', min_value=1,
+                                      value=st.session_state.coll_no, step=1,
+                                      key=f'cno_{fk}')
+        with c_minus:
+            st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
+            with st.container(key='cno_minus'):
+                if st.button('−', key='cno_minus_btn', use_container_width=True):
+                    st.session_state.coll_no = max(1, int(coll_no) - 1)
+                    st.rerun()
+        with c_plus:
+            st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
+            if st.button('+', key='cno_plus', type='primary', use_container_width=True):
+                st.session_state.coll_no = int(coll_no) + 1
                 st.rerun()
-    with c_plus:
-        st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
-        if st.button('+', key='cno_plus', type='primary', use_container_width=True):
-            st.session_state.coll_no = int(coll_no) + 1
-            st.rerun()
-    with c_badge:
-        st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
-        st.markdown('<span class="auto-badge">⚡ AUTO +1</span>', unsafe_allow_html=True)
+        with c_badge:
+            st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
+            st.markdown('<span class="auto-badge">⚡ AUTO +1</span>', unsafe_allow_html=True)
     st.divider()
 
     # ── Locality ──────────────────────────────────────────────────────────────
