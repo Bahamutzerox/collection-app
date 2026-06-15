@@ -187,19 +187,31 @@ input, textarea,
   border-color: var(--slate) !important;
   background: transparent !important;
 }
-/* Coll. No. row — fix minus/plus columns to 44px so they're compact squares */
+/* Coll. No. row — force minus/plus into 40×40 squares */
 .st-key-cno_row [data-testid="stColumn"]:nth-child(2),
 .st-key-cno_row [data-testid="stColumn"]:nth-child(3) {
-  flex: 0 0 44px !important;
-  width: 44px !important;
-  min-width: 44px !important;
-  max-width: 44px !important;
-  padding: 0 2px !important;
+  flex: 0 0 40px !important;
+  width: 40px !important;
+  min-width: 0 !important;
+  max-width: 40px !important;
+  padding: 0 !important;
 }
+.st-key-cno_row [data-testid="stColumn"]:nth-child(2) .stButton,
+.st-key-cno_row [data-testid="stColumn"]:nth-child(3) .stButton,
 .st-key-cno_row [data-testid="stColumn"]:nth-child(2) .stButton > button,
 .st-key-cno_row [data-testid="stColumn"]:nth-child(3) .stButton > button {
-  padding: 6px 0 !important;
+  width: 40px !important;
+  min-width: 0 !important;
+  max-width: 40px !important;
+  height: 40px !important;
+  min-height: 0 !important;
+  max-height: 40px !important;
+  padding: 0 !important;
   font-size: 18px !important;
+  line-height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 /* ── Dividers ────────────────────────────────────────────────────────────── */
