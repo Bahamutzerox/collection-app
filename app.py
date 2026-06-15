@@ -96,23 +96,20 @@ html, body, [class*="css"], .stApp, input, textarea, button, select {
 /* hide Streamlit default footer */
 footer { visibility: hidden !important; }
 
-/* ── Panels — mimic the DS Panel component ───────────────────────────────── */
-/* Streamlit puts its own border on the direct child div (emotion CSS).
-   Clear that, then apply our styled border to the wrapper itself. */
-[data-testid="stVerticalBlockBorderWrapper"] > div {
-  border: none !important;
+/* ── Panels — target by key class (stVerticalBlockBorderWrapper doesn't exist in 1.58) ── */
+.st-key-entry_panel,
+.st-key-records_panel {
   border-radius: 0 !important;
-  background: transparent !important;
-}
-[data-testid="stVerticalBlockBorderWrapper"] {
-  background: var(--panel) !important;
-  border-radius: 0 !important;
-  border: 2px solid var(--green) !important;
-  box-shadow: 5px 5px 0 rgba(7,9,12,.6), 0 0 18px rgba(52,240,106,.25) !important;
   padding: 4px 4px 8px !important;
 }
-[data-testid="stVerticalBlockBorderWrapper"]:has(.pix-panel-hdr.slate) {
-  border-color: var(--slate) !important;
+.st-key-entry_panel {
+  background: var(--panel) !important;
+  border: 2px solid var(--green) !important;
+  box-shadow: 5px 5px 0 rgba(7,9,12,.6), 0 0 18px rgba(52,240,106,.25) !important;
+}
+.st-key-records_panel {
+  background: var(--panel) !important;
+  border: 2px solid var(--slate) !important;
   box-shadow: 5px 5px 0 rgba(7,9,12,.6), 0 0 14px rgba(157,191,204,.2) !important;
 }
 
@@ -396,13 +393,18 @@ code {
   var GREEN = '#34f06a', GREEN_GLOW = '5px 5px 0 rgba(7,9,12,.6), 0 0 18px rgba(52,240,106,.25)';
   var SLATE = '#9dbfcc', SLATE_GLOW = '5px 5px 0 rgba(7,9,12,.6), 0 0 14px rgba(157,191,204,.2)';
   function update() {
-    document.querySelectorAll('.pix-panel-hdr').forEach(function(h) {
-      var w = h.closest('[data-testid="stVerticalBlockBorderWrapper"]');
-      if (!w) return;
-      var isSlate = h.classList.contains('slate');
-      w.style.setProperty('border-color', isSlate ? SLATE : GREEN, 'important');
-      w.style.setProperty('box-shadow', isSlate ? SLATE_GLOW : GREEN_GLOW, 'important');
-    });
+    var ep = document.querySelector('.st-key-entry_panel');
+    var rp = document.querySelector('.st-key-records_panel');
+    if (ep) {
+      ep.style.setProperty('border', '2px solid ' + GREEN, 'important');
+      ep.style.setProperty('box-shadow', GREEN_GLOW, 'important');
+      ep.style.setProperty('border-radius', '0', 'important');
+    }
+    if (rp) {
+      rp.style.setProperty('border', '2px solid ' + SLATE, 'important');
+      rp.style.setProperty('box-shadow', SLATE_GLOW, 'important');
+      rp.style.setProperty('border-radius', '0', 'important');
+    }
   }
   update();
   setTimeout(update, 300);
@@ -1092,7 +1094,7 @@ else:
     page_header('標本採集記錄', 'SPECIMEN COLLECTION', last_no=last_no)
 
 # ── Form panel ────────────────────────────────────────────────────────────────
-with st.container(border=True):
+with st.container(border=True, key='entry_panel'):
     panel_title(
         '標本採集記錄輸入' if not edit_mode else '編輯記錄',
         subtitle='SPECIMEN COLLECTION',
@@ -1302,7 +1304,7 @@ if submit:
 
 # ── Records panel ─────────────────────────────────────────────────────────────
 st.markdown('<div style="height:16px"></div>', unsafe_allow_html=True)
-with st.container(border=True):
+with st.container(border=True, key='records_panel'):
     panel_title('記錄查詢 / 刪除', accent='slate')
     try:
         records = load_all_records()
