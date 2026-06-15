@@ -626,13 +626,6 @@ def _make_flora_html():
     flora = (f'<div style="position:fixed;inset:0;pointer-events:none;'
              f'overflow:hidden;z-index:1;">{items}</div>')
 
-    scanlines = (
-        '<div style="position:fixed;inset:0;pointer-events:none;z-index:2;'
-        'background-image:repeating-linear-gradient('
-        '0deg,rgba(0,0,0,.12) 0px,rgba(0,0,0,.12) 1px,transparent 1px,transparent 3px);'
-        'opacity:.25;"></div>'
-    )
-
     vignette = (
         '<div style="position:fixed;inset:0;pointer-events:none;z-index:2;'
         'background:'
@@ -641,7 +634,7 @@ def _make_flora_html():
         '</div>'
     )
 
-    return flora + scanlines + vignette
+    return flora + vignette
 
 st.markdown(_make_flora_html(), unsafe_allow_html=True)
 
