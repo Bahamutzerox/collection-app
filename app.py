@@ -222,7 +222,8 @@ code {
 [data-testid="stDataFrame"] {
   border: 2px solid var(--line-strong) !important; border-radius: 0 !important;
 }
-[data-testid="stDataFrame"] thead tr th {
+[data-testid="stDataFrame"] thead tr th,
+[data-testid="stDataFrame"] [role="columnheader"] {
   background: var(--panel-2) !important;
   color: var(--green) !important;
   font-family: var(--font-mono) !important;
@@ -230,11 +231,6 @@ code {
   letter-spacing: .08em !important;
   text-transform: uppercase !important;
   border-bottom: 2px solid var(--green-dim) !important;
-}
-[data-testid="stDataFrame"] tbody tr td {
-  color: var(--slate-bright) !important;
-  font-family: var(--font-mono) !important;
-  font-size: 12px !important;
 }
 [data-testid="stDataFrame"] tbody tr:nth-child(odd) td {
   background: var(--slate-faint) !important;
@@ -504,6 +500,13 @@ code {
       var t = btn.textContent.trim();
       if (t === '✎') iconBtnDeep(btn, GREEN);
       if (t === '✕') iconBtnDeep(btn, '#ff4d5e');
+    });
+    document.querySelectorAll('[data-testid="stDataFrame"] [role="columnheader"]').forEach(function(el) {
+      el.style.setProperty('color', GREEN, 'important');
+      el.style.setProperty('font-family', '"JetBrains Mono",monospace', 'important');
+      el.style.setProperty('font-size', '11px', 'important');
+      el.style.setProperty('letter-spacing', '.08em', 'important');
+      el.style.setProperty('text-transform', 'uppercase', 'important');
     });
   }
   update();
