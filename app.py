@@ -1415,12 +1415,11 @@ with st.container(border=True, key='records_panel'):
         event = st.dataframe(
             df_show,
             on_select='rerun',
+            selection_mode='single-row',
             use_container_width=True,
             hide_index=True,
             key='records_df',
         )
-
-        st.caption(f'DEBUG rows={getattr(getattr(event,"selection",None),"rows",None)}')
 
         # ── 選中列 action bar ─────────────────────────────────────────────────
         sel_row = None
@@ -1457,6 +1456,4 @@ with st.container(border=True, key='records_panel'):
                         st.rerun()
 
     except Exception as e:
-        import traceback
-        st.error(f'錯誤：{type(e).__name__}: {e}')
-        st.code(traceback.format_exc())
+        st.warning(f'無法載入記錄：{e}')
