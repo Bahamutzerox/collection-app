@@ -1415,7 +1415,6 @@ with st.container(border=True, key='records_panel'):
         event = st.dataframe(
             df_show,
             on_select='rerun',
-            selection_mode='single-row',
             use_container_width=True,
             hide_index=True,
             key='records_df',
