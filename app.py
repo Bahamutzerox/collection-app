@@ -131,15 +131,15 @@ input, textarea,
 [data-baseweb="textarea"],
 [data-testid="stNumberInputContainer"] {
   background-color: var(--bg) !important;
-  border: 3px solid var(--line-strong) !important;
+  border: 1px solid var(--line-strong) !important;
   border-radius: 6px !important;
   color: var(--ink) !important;
 }
 [data-baseweb="input"]:focus-within,
 [data-baseweb="select"] > div:focus-within,
 [data-baseweb="textarea"]:focus-within {
-  border-color: var(--green) !important;
-  box-shadow: 0 0 0 2px var(--green-dim), 0 0 14px rgba(52,240,106,.45) !important;
+  border: 3px solid var(--green) !important;
+  box-shadow: 0 0 14px rgba(52,240,106,.45) !important;
 }
 [data-testid="stNumberInput"] input {
   font-family: var(--font-mono) !important; color: var(--green) !important;
