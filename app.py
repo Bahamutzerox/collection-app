@@ -145,42 +145,7 @@ input, textarea,
   font-family: var(--font-mono) !important; color: var(--green) !important;
 }
 /* number input native step buttons */
-[data-testid="stNumberInputStepDown"],
-[data-testid="stNumberInputStepUp"] {
-  display: none !important;
-}
-/* ── Coll. No. square buttons ────────────────────────────────────────────── */
-.st-key-cno_minus .stButton > button,
-.st-key-cno_plus  .stButton > button {
-  width: 40px !important;
-  height: 40px !important;
-  min-width: 0 !important;
-  max-width: 40px !important;
-  padding: 0 !important;
-  font-size: 20px !important;
-  line-height: 1 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-.st-key-cno_minus .stButton > button {
-  background: transparent !important;
-  color: var(--slate) !important;
-  border: 2px solid var(--slate) !important;
-}
-.st-key-cno_minus .stButton > button:hover {
-  background: var(--slate) !important;
-  color: var(--void) !important;
-}
-.st-key-cno_plus .stButton > button {
-  background: var(--green) !important;
-  color: var(--void) !important;
-  border: 2px solid var(--green) !important;
-}
-.st-key-cno_plus .stButton > button:hover {
-  background: var(--green-bright) !important;
-  border-color: var(--green-bright) !important;
-}
+/* native step buttons — styled via JS */
 /* select dropdown background */
 [data-baseweb="popover"] { background: var(--panel-2) !important; border: 2px solid var(--line-strong) !important; }
 
@@ -431,20 +396,25 @@ code {
 (function applyPanelBorders() {
   var GREEN = '#34f06a', GREEN_GLOW = '5px 5px 0 rgba(7,9,12,.6), 0 0 18px rgba(52,240,106,.25)';
   var SLATE = '#9dbfcc', SLATE_GLOW = '5px 5px 0 rgba(7,9,12,.6), 0 0 14px rgba(157,191,204,.2)';
-  function sqBtn(btn, bg, color, border) {
-    btn.style.setProperty('width',            '40px',   'important');
-    btn.style.setProperty('height',           '40px',   'important');
-    btn.style.setProperty('min-width',        '0',      'important');
-    btn.style.setProperty('max-width',        '40px',   'important');
-    btn.style.setProperty('padding',          '0',      'important');
-    btn.style.setProperty('display',          'flex',   'important');
-    btn.style.setProperty('align-items',      'center', 'important');
-    btn.style.setProperty('justify-content',  'center', 'important');
-    btn.style.setProperty('font-size',        '20px',   'important');
-    btn.style.setProperty('background',       bg,       'important');
-    btn.style.setProperty('color',            color,    'important');
-    btn.style.setProperty('border',           border,   'important');
-    btn.style.setProperty('border-radius',    '4px',    'important');
+  function styleStep(btn, bg, color, border, label) {
+    btn.style.setProperty('width',           '36px',   'important');
+    btn.style.setProperty('height',          '36px',   'important');
+    btn.style.setProperty('min-width',       '0',      'important');
+    btn.style.setProperty('padding',         '0',      'important');
+    btn.style.setProperty('display',         'flex',   'important');
+    btn.style.setProperty('align-items',     'center', 'important');
+    btn.style.setProperty('justify-content', 'center', 'important');
+    btn.style.setProperty('font-size',       '20px',   'important');
+    btn.style.setProperty('line-height',     '1',      'important');
+    btn.style.setProperty('background',      bg,       'important');
+    btn.style.setProperty('color',           color,    'important');
+    btn.style.setProperty('border',          border,   'important');
+    btn.style.setProperty('border-radius',   '4px',    'important');
+    btn.style.setProperty('cursor',          'pointer','important');
+    if (!btn.dataset.relabeled) {
+      btn.innerHTML = label;
+      btn.dataset.relabeled = '1';
+    }
   }
   function update() {
     var ep = document.querySelector('.st-key-entry_panel');
@@ -459,10 +429,10 @@ code {
       rp.style.setProperty('box-shadow', SLATE_GLOW, 'important');
       rp.style.setProperty('border-radius', '0', 'important');
     }
-    var mb = document.querySelector('.st-key-cno_minus button');
-    var pb = document.querySelector('.st-key-cno_plus button');
-    if (mb) sqBtn(mb, 'transparent', SLATE, '2px solid ' + SLATE);
-    if (pb) sqBtn(pb, GREEN, '#07090c', '2px solid ' + GREEN);
+    var sd = document.querySelector('[data-testid="stNumberInputStepDown"]');
+    var su = document.querySelector('[data-testid="stNumberInputStepUp"]');
+    if (sd) styleStep(sd, 'transparent', SLATE, '2px solid ' + SLATE, '−');
+    if (su) styleStep(su, GREEN, '#07090c', '2px solid ' + GREEN, '+');
   }
   update();
   setTimeout(update, 300);
@@ -1155,23 +1125,11 @@ with st.container(border=True, key='entry_panel'):
         st.info(f'正在編輯第 {st.session_state.edit_row} 列；修改後按「儲存修改」寫回，或按「取消編輯」放棄。')
 
     # ── Coll. No. ─────────────────────────────────────────────────────────────
-    c_num, c_minus, c_plus, c_badge = st.columns([3, 1, 1, 4])
+    c_num, c_badge = st.columns([2, 4])
     with c_num:
         coll_no = st.number_input('Coll. No.', min_value=1,
                                   value=st.session_state.coll_no, step=1,
                                   key=f'cno_{fk}')
-    with c_minus:
-        st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
-        with st.container(key='cno_minus'):
-            if st.button('−', key='cno_m'):
-                st.session_state.coll_no = max(1, int(coll_no) - 1)
-                st.rerun()
-    with c_plus:
-        st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
-        with st.container(key='cno_plus'):
-            if st.button('+', key='cno_p', type='primary'):
-                st.session_state.coll_no = int(coll_no) + 1
-                st.rerun()
     with c_badge:
         st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
         st.markdown('<span class="auto-badge">⚡ AUTO +1</span>', unsafe_allow_html=True)
