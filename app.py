@@ -180,6 +180,13 @@ input, textarea,
 .stButton > button[kind="secondary"]:hover {
   background: var(--red) !important; color: var(--void) !important;
 }
+/* Coll. No. minus button — override secondary red to slate */
+.st-key-cno_minus .stButton > button,
+.st-key-cno_minus .stButton > button:hover {
+  color: var(--slate) !important;
+  border-color: var(--slate) !important;
+  background: transparent !important;
+}
 
 /* ── Dividers ────────────────────────────────────────────────────────────── */
 hr, [data-testid="stDivider"] {
@@ -1094,16 +1101,17 @@ with st.container(border=True, key='entry_panel'):
         st.info(f'正在編輯第 {st.session_state.edit_row} 列；修改後按「儲存修改」寫回，或按「取消編輯」放棄。')
 
     # ── Coll. No. ─────────────────────────────────────────────────────────────
-    c_num, c_minus, c_plus, c_badge = st.columns([2.5, 0.4, 0.4, 2.5])
+    c_num, c_minus, c_plus, c_badge = st.columns([3, 0.5, 0.5, 2.5])
     with c_num:
         coll_no = st.number_input('Coll. No.', min_value=1,
                                   value=st.session_state.coll_no, step=1,
                                   key=f'cno_{fk}')
     with c_minus:
         st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
-        if st.button('−', key='cno_minus', use_container_width=True):
-            st.session_state.coll_no = max(1, int(coll_no) - 1)
-            st.rerun()
+        with st.container(key='cno_minus'):
+            if st.button('−', key='cno_minus_btn', use_container_width=True):
+                st.session_state.coll_no = max(1, int(coll_no) - 1)
+                st.rerun()
     with c_plus:
         st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
         if st.button('+', key='cno_plus', type='primary', use_container_width=True):
