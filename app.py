@@ -231,6 +231,11 @@ code {
   text-transform: uppercase !important;
   border-bottom: 2px solid var(--green-dim) !important;
 }
+[data-testid="stDataFrame"] tbody tr td {
+  color: var(--slate-bright) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
+}
 [data-testid="stDataFrame"] tbody tr:nth-child(odd) td {
   background: var(--slate-faint) !important;
 }
