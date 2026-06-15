@@ -1487,10 +1487,8 @@ with st.container(border=True, key='records_panel'):
             'Common Name': '中文名',
             'Collector': '採集人',
         })
-        _base = 'color:#9dbfcc;font-family:"JetBrains Mono",monospace;font-size:12px;'
-        df_styled = df_show.style.map(lambda _: _base)
         event = st.dataframe(
-            df_styled,
+            df_show,
             on_select='rerun',
             use_container_width=True,
             hide_index=True,
