@@ -1511,15 +1511,17 @@ with st.container(border=True, key='records_panel'):
                      '中文名': '#7a9bab', 'Habit': '#7a9bab',
                      '地點': '#5a7880', 'Date': '#7a9bab', '採集人': '#7a9bab'}
         HABIT_COLOR = {
-            'tree':      ('#34f06a', 'rgba(52,240,106,.12)'),
-            'shrub':     ('#4de1ff', 'rgba(77,225,255,.12)'),
-            'herb':      ('#ffc83d', 'rgba(255,200,61,.12)'),
-            'fern':      ('#b87fff', 'rgba(184,127,255,.12)'),
-            'epiphyte':  ('#ff5cc8', 'rgba(255,92,200,.12)'),
-            'grass':     ('#9dbfcc', 'rgba(157,191,204,.10)'),
-            'moss':      ('#4de1ff', 'rgba(77,225,255,.10)'),
-            'palm':      ('#ffc83d', 'rgba(255,200,61,.10)'),
-            'aquatic':   ('#4de1ff', 'rgba(77,225,255,.10)'),
+            'tree':       ('#34f06a', 'rgba(52,240,106,.12)'),
+            'shrub':      ('#4de1ff', 'rgba(77,225,255,.12)'),
+            'herb':       ('#ffc83d', 'rgba(255,200,61,.12)'),
+            'fern':       ('#b87fff', 'rgba(184,127,255,.12)'),
+            'epiphyte':   ('#ff5cc8', 'rgba(255,92,200,.12)'),
+            'grass':      ('#9dbfcc', 'rgba(157,191,204,.10)'),
+            'moss':       ('#4de1ff', 'rgba(77,225,255,.10)'),
+            'palm':       ('#ffc83d', 'rgba(255,200,61,.10)'),
+            'aquatic':    ('#4de1ff', 'rgba(77,225,255,.10)'),
+            'flowering':  ('#ff5cc8', 'rgba(255,92,200,.12)'),
+            'vine':       ('#b87fff', 'rgba(184,127,255,.12)'),
         }
         def habit_badge(h):
             h = (h or '').strip().lower()
@@ -1558,18 +1560,17 @@ with st.container(border=True, key='records_panel'):
                     if vcol == 'Coll. No.':
                         try: val = str(int(float(val)))
                         except: pass
-                    if vcol == '地點': val = val[:44]
                     if vcol == 'Habit':
                         inner = habit_badge(val)
+                        clip = ''
                     else:
                         italic = 'font-style:italic;' if vcol == 'Scientific Name' else ''
                         color = COL_COLOR.get(vcol, '#9dbfcc')
                         inner = (f'<span style="font-family:\'JetBrains Mono\',monospace;'
-                                 f'font-size:12px;color:{color};{italic}'
-                                 f'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'
-                                 f'{val}</span>')
+                                 f'font-size:12px;color:{color};{italic}">{val}</span>')
+                        clip = 'overflow:hidden;white-space:nowrap;text-overflow:ellipsis;'
                     st.markdown(
-                        f'<div style="background:{bg};padding:5px 2px;">{inner}</div>',
+                        f'<div style="background:{bg};padding:5px 2px;{clip}">{inner}</div>',
                         unsafe_allow_html=True)
 
     except Exception as e:
