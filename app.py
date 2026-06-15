@@ -256,7 +256,25 @@ code {
 .rec-date{ color:var(--slate)!important; font-family:var(--font-mono); font-size:12px!important; white-space:nowrap; }
 .rec-loc { color:var(--muted)!important; font-size:12px!important; }
 .rec-coll{ color:var(--ink)!important; font-size:12px!important; white-space:nowrap; }
-.rec-table tbody tr:hover td { background:rgba(27,37,48,.85); }
+.rec-row { cursor:pointer; }
+.rec-row:hover td { background:rgba(27,37,48,.85); }
+.rec-row.sel td { background:rgba(52,240,106,0.1) !important; border-bottom-color:var(--green-dim) !important; }
+.rec-table tbody tr:nth-child(even) td { background:rgba(28,40,52,0.4); }
+/* Selection action bar */
+.st-key-_sel_channel { display:none !important; }
+.sel-bar { display:flex; align-items:center; gap:12px; padding:9px 14px;
+  background:rgba(52,240,106,0.08); border-top:1px solid var(--green-dim);
+  border-bottom:1px solid var(--green-dim); margin:0 0 4px; }
+.sel-bar-no { color:var(--green); font-family:var(--font-mono); font-size:12px; letter-spacing:.06em; }
+.sel-bar-sci { color:var(--slate-bright); font-style:italic; font-size:13px; }
+/* Icon buttons in action row */
+.st-key-edit_btn_icon .stButton > button,
+.st-key-del_btn_icon  .stButton > button {
+  width:36px !important; height:36px !important; min-width:0 !important;
+  padding:0 !important; font-size:16px !important; line-height:1 !important;
+}
+.st-key-del_btn_icon .stButton > button { color:var(--red) !important; border-color:var(--red) !important; }
+.st-key-del_btn_icon .stButton > button:hover { background:var(--red) !important; color:var(--void) !important; }
 .habit-chip {
   display:inline-block; border-radius:2px; padding:2px 8px;
   font-size:11px; font-family:'JetBrains Mono',monospace; letter-spacing:.04em;
@@ -409,6 +427,15 @@ code {
 (function applyPanelBorders() {
   var GREEN = '#34f06a', GREEN_GLOW = '5px 5px 0 rgba(7,9,12,.6), 0 0 18px rgba(52,240,106,.25)';
   var SLATE = '#9dbfcc', SLATE_GLOW = '5px 5px 0 rgba(7,9,12,.6), 0 0 14px rgba(157,191,204,.2)';
+  window.selectRow = function(no) {
+    var ch = document.querySelector('.st-key-_sel_channel input');
+    if (!ch) return;
+    var cur = parseInt(ch.value) || 0;
+    var val = (cur === no) ? 0 : no;
+    var niv = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+    niv.call(ch, String(val));
+    ch.dispatchEvent(new Event('input', {bubbles: true}));
+  };
   function styleStep(btn, bg, color, border, label) {
     btn.style.setProperty('width',           '36px',   'important');
     btn.style.setProperty('height',          '36px',   'important');
@@ -718,10 +745,10 @@ def _abbr_collector(s):
         return ' '.join(parts) if len(parts) <= 3 else f'{parts[0]} {parts[-1]}'
     return s[:18]
 
-def _render_records_table(df):
+def _render_records_table(df, sel_no=0):
     rows = ''
     for _, row in df.iterrows():
-        no    = row.get('Coll. No.', '') or ''
+        no    = int(row.get('Coll. No.', 0) or 0)
         sci   = row.get('Scientific Name', '') or ''
         cn    = row.get('Common Name', '') or ''
         habit = row.get('Habit', '') or ''
@@ -732,7 +759,9 @@ def _render_records_table(df):
         loc_s = (loc[:44] + '…') if len(loc) > 44 else loc
         sci_html = f'<em>{sci}</em>' if sci and sci != 'nan' else ''
         cn_s  = cn if cn and cn != 'nan' else ''
-        rows += (f'<tr class="rec-row">'
+        is_sel = (no == sel_no and sel_no > 0)
+        row_cls = 'rec-row sel' if is_sel else 'rec-row'
+        rows += (f'<tr class="{row_cls}" onclick="window.selectRow&&window.selectRow({no})">'
                  f'<td class="rec-no">{no}</td>'
                  f'<td class="rec-sci">{sci_html}</td>'
                  f'<td class="rec-common">{cn_s}</td>'
@@ -986,6 +1015,8 @@ def init_state(last_no):
     for k, v in defaults.items():
         if k not in st.session_state:
             st.session_state[k] = v
+    if '_sel_cno' not in st.session_state:
+        st.session_state['_sel_cno'] = 0
 
 init_state(last_no)
 fk = st.session_state.fk  # shorthand
@@ -1341,6 +1372,10 @@ if submit:
 st.markdown('<div style="height:16px"></div>', unsafe_allow_html=True)
 with st.container(border=True, key='records_panel'):
     panel_title('記錄查詢 / 刪除', accent='slate')
+    # Hidden row-selection channel (JS writes here to trigger rerun)
+    with st.container(key='_sel_channel'):
+        st.number_input('_s', min_value=0, step=1, key='_sel_cno',
+                        label_visibility='collapsed')
     try:
         records = load_all_records()
         total = len(records)
@@ -1383,30 +1418,38 @@ with st.container(border=True, key='records_panel'):
         else:
             st.caption(f'共 {total:,} 筆，以下顯示最近 {N_SHOW} 筆')
 
-        # ── 自訂 HTML 顯示表格 ────────────────────────────────────────────────
-        st.markdown(_render_records_table(display_df), unsafe_allow_html=True)
+        # ── 選中列 action bar ─────────────────────────────────────────────────
+        sel_cno = int(st.session_state.get('_sel_cno') or 0)
+        sel_row = None
+        if sel_cno > 0 and 'Coll. No.' in records.columns:
+            m = records[records['Coll. No.'] == sel_cno]
+            if not m.empty:
+                sel_row = m.iloc[0]
 
-        # ── 刪除 / 編輯（輸入採集號碼）────────────────────────────────────────
-        with st.expander('✏️ 編輯 / 🗑 刪除記錄'):
-            target_no = st.number_input('輸入採集號碼 (Coll. No.)', min_value=1, step=1, key='del_no')
-            match = records[records['Coll. No.'] == target_no] if 'Coll. No.' in records.columns else pd.DataFrame()
-            if not match.empty:
-                row = match.iloc[0]
-                st.markdown(f"**{row.get('Scientific Name','(無學名)')}**　{row.get('Date','')}　{row.get('Locality','')}", unsafe_allow_html=False)
-                be, bd = st.columns(2)
-                with be:
-                    if st.button('帶入上方表單編輯', use_container_width=True, key='btn_edit'):
-                        enter_edit_mode(row)
+        if sel_row is not None:
+            sel_sci = sel_row.get('Scientific Name', '') or ''
+            st.markdown(
+                f'<div class="sel-bar">'
+                f'<span class="sel-bar-no">✓ 已選 #{sel_cno}</span>'
+                f'<span class="sel-bar-sci">{sel_sci}</span>'
+                f'</div>',
+                unsafe_allow_html=True)
+            _, c_edit_col, c_del_col = st.columns([10, 1, 1])
+            with c_edit_col:
+                with st.container(key='edit_btn_icon'):
+                    if st.button('✏', key='btn_row_edit', help='帶入上方表單編輯'):
+                        enter_edit_mode(sel_row)
+                        st.session_state['_sel_cno'] = 0
                         st.rerun()
-                with bd:
-                  with st.container(key='del_btn_wrap'):
-                    if st.button('刪除此筆', use_container_width=True, key='btn_del'):
-                        excel_row = int(row['_row'])
-                        delete_record(excel_row)
+            with c_del_col:
+                with st.container(key='del_btn_icon'):
+                    if st.button('🗑', key='btn_row_del', help='刪除此筆'):
+                        delete_record(int(sel_row['_row']))
                         st.cache_data.clear()
-                        st.success(f'已刪除採集號 #{target_no}')
+                        st.session_state['_sel_cno'] = 0
                         st.rerun()
-            else:
-                st.caption('找不到此採集號碼')
+
+        # ── 自訂 HTML 顯示表格 ────────────────────────────────────────────────
+        st.markdown(_render_records_table(display_df, sel_no=sel_cno), unsafe_allow_html=True)
     except Exception as e:
         st.warning(f'無法載入記錄：{e}')
