@@ -1421,6 +1421,8 @@ with st.container(border=True, key='records_panel'):
             key='records_df',
         )
 
+        st.write('DEBUG event.selection:', event.selection)  # DEBUG
+
         # ── 選中列 action bar ─────────────────────────────────────────────────
         sel_row = None
         try:
