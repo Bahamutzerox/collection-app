@@ -104,7 +104,7 @@ footer { visibility: hidden !important; }
   box-shadow: 5px 5px 0 rgba(7,9,12,.6), 0 0 18px rgba(52,240,106,.25) !important;
   padding: 4px 4px 8px !important;
 }
-[data-testid="stVerticalBlockBorderWrapper"]:last-of-type {
+[data-testid="stVerticalBlockBorderWrapper"]:has(.pix-panel-hdr.slate) {
   border-color: var(--slate) !important;
   box-shadow: 5px 5px 0 rgba(7,9,12,.6), 0 0 14px rgba(157,191,204,.2) !important;
 }
