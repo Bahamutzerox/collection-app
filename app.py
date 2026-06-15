@@ -1510,6 +1510,23 @@ with st.container(border=True, key='records_panel'):
         COL_COLOR = {'Coll. No.': '#34f06a', 'Scientific Name': '#9dbfcc',
                      '中文名': '#7a9bab', 'Habit': '#7a9bab',
                      '地點': '#5a7880', 'Date': '#7a9bab', '採集人': '#7a9bab'}
+        HABIT_COLOR = {
+            'tree':      ('#34f06a', 'rgba(52,240,106,.12)'),
+            'shrub':     ('#4de1ff', 'rgba(77,225,255,.12)'),
+            'herb':      ('#ffc83d', 'rgba(255,200,61,.12)'),
+            'fern':      ('#b87fff', 'rgba(184,127,255,.12)'),
+            'epiphyte':  ('#ff5cc8', 'rgba(255,92,200,.12)'),
+            'grass':     ('#9dbfcc', 'rgba(157,191,204,.10)'),
+            'moss':      ('#4de1ff', 'rgba(77,225,255,.10)'),
+            'palm':      ('#ffc83d', 'rgba(255,200,61,.10)'),
+            'aquatic':   ('#4de1ff', 'rgba(77,225,255,.10)'),
+        }
+        def habit_badge(h):
+            h = (h or '').strip().lower()
+            c, bg_c = HABIT_COLOR.get(h, ('#9dbfcc', 'rgba(157,191,204,.08)'))
+            return (f'<span style="font-family:\'JetBrains Mono\',monospace;font-size:11px;'
+                    f'color:{c};background:{bg_c};border:1px solid {c};border-radius:0;'
+                    f'padding:2px 8px;white-space:nowrap;">{h}</span>') if h else ''
         cw = [0.32] + [COL_W.get(c, 1.0) for c in VCOLS]
 
         # 表頭
@@ -1542,13 +1559,17 @@ with st.container(border=True, key='records_panel'):
                         try: val = str(int(float(val)))
                         except: pass
                     if vcol == '地點': val = val[:44]
-                    italic = 'font-style:italic;' if vcol == 'Scientific Name' else ''
-                    color = COL_COLOR.get(vcol, '#9dbfcc')
+                    if vcol == 'Habit':
+                        inner = habit_badge(val)
+                    else:
+                        italic = 'font-style:italic;' if vcol == 'Scientific Name' else ''
+                        color = COL_COLOR.get(vcol, '#9dbfcc')
+                        inner = (f'<span style="font-family:\'JetBrains Mono\',monospace;'
+                                 f'font-size:12px;color:{color};{italic}'
+                                 f'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'
+                                 f'{val}</span>')
                     st.markdown(
-                        f'<div style="font-family:\'JetBrains Mono\',monospace;'
-                        f'font-size:12px;color:{color};{italic}background:{bg};'
-                        f'padding:7px 2px;white-space:nowrap;overflow:hidden;'
-                        f'text-overflow:ellipsis;">{val}</div>',
+                        f'<div style="background:{bg};padding:5px 2px;">{inner}</div>',
                         unsafe_allow_html=True)
 
     except Exception as e:
