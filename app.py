@@ -130,9 +130,9 @@ input, textarea,
 [data-baseweb="select"] > div,
 [data-baseweb="textarea"],
 [data-testid="stNumberInputContainer"] {
-  background-color: var(--panel-2) !important;
-  border: 2px solid var(--line-strong) !important;
-  border-radius: 0 !important;
+  background-color: var(--bg) !important;
+  border: 3px solid var(--line-strong) !important;
+  border-radius: 6px !important;
   color: var(--ink) !important;
 }
 [data-baseweb="input"]:focus-within,
