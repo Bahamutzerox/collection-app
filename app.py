@@ -145,7 +145,11 @@ input, textarea,
   font-family: var(--font-mono) !important; color: var(--green) !important;
 }
 /* number input native step buttons */
-/* native step buttons — styled via JS */
+/* hide all step buttons; only show cno_field's via higher-specificity rule */
+[data-testid="stNumberInputStepDown"],
+[data-testid="stNumberInputStepUp"] { display: none !important; }
+.st-key-cno_field [data-testid="stNumberInputStepDown"],
+.st-key-cno_field [data-testid="stNumberInputStepUp"] { display: flex !important; }
 /* select dropdown background */
 [data-baseweb="popover"] { background: var(--panel-2) !important; border: 2px solid var(--line-strong) !important; }
 
@@ -429,8 +433,9 @@ code {
       rp.style.setProperty('box-shadow', SLATE_GLOW, 'important');
       rp.style.setProperty('border-radius', '0', 'important');
     }
-    var sd = document.querySelector('[data-testid="stNumberInputStepDown"]');
-    var su = document.querySelector('[data-testid="stNumberInputStepUp"]');
+    var cno = document.querySelector('.st-key-cno_field');
+    var sd = cno && cno.querySelector('[data-testid="stNumberInputStepDown"]');
+    var su = cno && cno.querySelector('[data-testid="stNumberInputStepUp"]');
     if (sd) styleStep(sd, 'transparent', SLATE, '2px solid ' + SLATE, '−');
     if (su) styleStep(su, GREEN, '#07090c', '2px solid ' + GREEN, '+');
   }
@@ -1127,9 +1132,10 @@ with st.container(border=True, key='entry_panel'):
     # ── Coll. No. ─────────────────────────────────────────────────────────────
     c_num, c_badge = st.columns([2, 4])
     with c_num:
-        coll_no = st.number_input('Coll. No.', min_value=1,
-                                  value=st.session_state.coll_no, step=1,
-                                  key=f'cno_{fk}')
+        with st.container(key='cno_field'):
+            coll_no = st.number_input('Coll. No.', min_value=1,
+                                      value=st.session_state.coll_no, step=1,
+                                      key=f'cno_{fk}')
     with c_badge:
         st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
         st.markdown('<span class="auto-badge">⚡ AUTO +1</span>', unsafe_allow_html=True)
