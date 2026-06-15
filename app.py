@@ -271,7 +271,7 @@ code {
 .st-key-del_btn_icon  button {
   width:36px !important; height:36px !important; min-width:0 !important;
   padding:0 !important; font-size:18px !important; line-height:1 !important;
-  font-variant-emoji: text !important;
+  font-variant-emoji: text !important; border-radius:0 !important;
 }
 .st-key-edit_btn_icon button,
 .st-key-edit_btn_icon button * { color:var(--green) !important; }
@@ -1451,7 +1451,14 @@ with st.container(border=True, key='records_panel'):
         if sel_row is not None:
             sel_cno = int(sel_row.get('Coll. No.', 0) or 0)
             sel_sci = sel_row.get('Scientific Name', '') or ''
-            c_e, c_d, _ = st.columns([1, 1, 20])
+            c_bar, c_e, c_d = st.columns([20, 1, 1])
+            with c_bar:
+                st.markdown(
+                    f'<div class="sel-bar">'
+                    f'<span class="sel-bar-no">✓ 已選 #{sel_cno}</span>'
+                    f'<em class="sel-bar-sci">{sel_sci}</em>'
+                    f'</div>',
+                    unsafe_allow_html=True)
             with c_e:
                 with st.container(key='edit_btn_icon'):
                     if st.button('✎', key='btn_row_edit', help='帶入上方表單編輯'):
@@ -1464,12 +1471,6 @@ with st.container(border=True, key='records_panel'):
                         st.cache_data.clear()
                         st.session_state['_sel_idx'] = None
                         st.rerun()
-            st.markdown(
-                f'<div class="sel-bar">'
-                f'<span class="sel-bar-no">✓ 已選 #{sel_cno}</span>'
-                f'<em class="sel-bar-sci">{sel_sci}</em>'
-                f'</div>',
-                unsafe_allow_html=True)
 
         # ── 表格（checkbox 勾選觸發 rerun）────────────────────────────────────
         SHOW_COLS = ['Coll. No.', 'Scientific Name', 'Common Name', 'Habit',
