@@ -267,15 +267,21 @@ code {
 .sel-bar-no { color:var(--green); font-family:var(--font-mono); font-size:12px; letter-spacing:.06em; }
 .sel-bar-sci { color:var(--slate-bright); font-style:italic; font-size:13px; }
 /* Icon buttons in action row */
-.st-key-edit_btn_icon .stButton > button,
-.st-key-del_btn_icon  .stButton > button {
+.st-key-edit_btn_icon button,
+.st-key-del_btn_icon  button {
   width:36px !important; height:36px !important; min-width:0 !important;
   padding:0 !important; font-size:18px !important; line-height:1 !important;
   font-variant-emoji: text !important;
 }
-.st-key-edit_btn_icon .stButton > button { color:var(--green) !important; border-color:var(--green) !important; }
-.st-key-del_btn_icon  .stButton > button { color:var(--red) !important; border-color:var(--red) !important; }
-.st-key-del_btn_icon  .stButton > button:hover { background:var(--red) !important; color:var(--void) !important; }
+.st-key-edit_btn_icon button,
+.st-key-edit_btn_icon button * { color:var(--green) !important; }
+.st-key-edit_btn_icon button   { border:2px solid var(--green) !important; }
+.st-key-del_btn_icon  button,
+.st-key-del_btn_icon  button * { color:var(--red) !important; }
+.st-key-del_btn_icon  button   { border:2px solid var(--red) !important; }
+.st-key-del_btn_icon  button:hover { background:var(--red) !important; }
+.st-key-del_btn_icon  button:hover,
+.st-key-del_btn_icon  button:hover * { color:var(--void) !important; }
 .habit-chip {
   display:inline-block; border-radius:2px; padding:2px 8px;
   font-size:11px; font-family:'JetBrains Mono',monospace; letter-spacing:.04em;
@@ -477,10 +483,23 @@ code {
       btn.style.setProperty('font-size',    '18px',  'important');
       btn.style.setProperty('line-height',  '1',     'important');
     }
-    var eb = document.querySelector('.st-key-edit_btn_icon button');
-    var db = document.querySelector('.st-key-del_btn_icon button');
-    if (eb) iconBtn(eb, GREEN);
-    if (db) iconBtn(db, '#ff4d5e');
+    function iconBtnDeep(btn, color) {
+      iconBtn(btn, color);
+      btn.querySelectorAll('*').forEach(function(el) {
+        el.style.setProperty('color', color, 'important');
+      });
+    }
+    var ec = document.querySelector('.st-key-edit_btn_icon');
+    var dc = document.querySelector('.st-key-del_btn_icon');
+    var eb = ec && ec.querySelector('button');
+    var db = dc && dc.querySelector('button');
+    if (eb) iconBtnDeep(eb, GREEN);
+    if (db) iconBtnDeep(db, '#ff4d5e');
+    document.querySelectorAll('button').forEach(function(btn) {
+      var t = btn.textContent.trim();
+      if (t === '✎') iconBtnDeep(btn, GREEN);
+      if (t === '✕') iconBtnDeep(btn, '#ff4d5e');
+    });
   }
   update();
   setTimeout(update, 300);
@@ -1381,9 +1400,11 @@ with st.container(border=True, key='records_panel'):
         records = load_all_records()
         total = len(records)
 
-        query = st.text_input(
-            '學名 / 中文名 / 科名 / 地點 / 採集人 / 編號（空格分隔多關鍵字）',
-            key='record_search').strip()
+        col_search, col_stats = st.columns([5, 2])
+        with col_search:
+            query = st.text_input(
+                '學名 / 中文名 / 科名 / 地點 / 採集人 / 編號（空格分隔多關鍵字）',
+                key='record_search').strip()
 
         if query:
             blob = records.fillna('').astype(str).apply(
@@ -1397,16 +1418,18 @@ with st.container(border=True, key='records_panel'):
             result = records
             matched = total
 
-        # ── 統計數字 ──────────────────────────────────────────────────────────
-        st.markdown(f"""
-<div style="display:flex;gap:40px;margin:10px 0 16px;padding:0 4px;align-items:flex-end;">
-  <div>
-    <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:.12em;margin-bottom:3px;">≡ 共計</div>
-    <div style="font-family:var(--font-mono);font-size:28px;color:var(--green);line-height:1;letter-spacing:.02em;">{total:,}</div>
+        # ── 統計數字（搜尋列右側）──────────────────────────────────────────
+        matched_color = 'var(--slate)' if matched == total else 'var(--green)'
+        with col_stats:
+            st.markdown(f"""
+<div style="display:flex;gap:28px;justify-content:flex-end;align-items:flex-end;padding-top:6px;height:100%;">
+  <div style="text-align:center;">
+    <div style="font-family:var(--font-mono);font-size:9px;color:var(--muted);letter-spacing:.14em;margin-bottom:4px;">≡ 共計</div>
+    <div style="font-family:var(--font-pixel);font-size:20px;color:var(--green);line-height:1;">{total:,}</div>
   </div>
-  <div>
-    <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:.12em;margin-bottom:3px;">◎ 符合</div>
-    <div style="font-family:var(--font-mono);font-size:28px;color:var(--green);line-height:1;letter-spacing:.02em;">{matched:,}</div>
+  <div style="text-align:center;">
+    <div style="font-family:var(--font-mono);font-size:9px;color:var(--muted);letter-spacing:.14em;margin-bottom:4px;">◎ 符合</div>
+    <div style="font-family:var(--font-pixel);font-size:20px;color:{matched_color};line-height:1;">{matched:,}</div>
   </div>
 </div>""", unsafe_allow_html=True)
 
@@ -1414,13 +1437,39 @@ with st.container(border=True, key='records_panel'):
         result_rev = result.iloc[::-1].reset_index(drop=True)
         display_df = result_rev.head(N_SHOW)
 
-        if query:
-            st.caption(f'找到 {matched:,} 筆，顯示前 {N_SHOW} 筆')
-        else:
-            st.caption(f'共 {total:,} 筆，以下顯示最近 {N_SHOW} 筆')
+        st.caption(
+            f'找到 {matched:,} 筆，顯示前 {N_SHOW} 筆' if query
+            else f'共 {total:,} 筆，以下顯示最近 {N_SHOW} 筆'
+        )
 
-        # ── action bar 佔位（st.empty 讓內容出現在表格上方）─────────────────────
-        bar_slot = st.empty()
+        # ── action bar（session state → 渲染在表格上方）────────────────────
+        stored_idx = st.session_state.get('_sel_idx', None)
+        sel_row = None
+        if stored_idx is not None and stored_idx < len(display_df):
+            sel_row = display_df.iloc[stored_idx]
+
+        if sel_row is not None:
+            sel_cno = int(sel_row.get('Coll. No.', 0) or 0)
+            sel_sci = sel_row.get('Scientific Name', '') or ''
+            c_e, c_d, _ = st.columns([1, 1, 20])
+            with c_e:
+                with st.container(key='edit_btn_icon'):
+                    if st.button('✎', key='btn_row_edit', help='帶入上方表單編輯'):
+                        enter_edit_mode(sel_row)
+                        st.rerun()
+            with c_d:
+                with st.container(key='del_btn_icon'):
+                    if st.button('✕', key='btn_row_del', help='刪除此筆'):
+                        delete_record(int(sel_row['_row']))
+                        st.cache_data.clear()
+                        st.session_state['_sel_idx'] = None
+                        st.rerun()
+            st.markdown(
+                f'<div class="sel-bar">'
+                f'<span class="sel-bar-no">✓ 已選 #{sel_cno}</span>'
+                f'<em class="sel-bar-sci">{sel_sci}</em>'
+                f'</div>',
+                unsafe_allow_html=True)
 
         # ── 表格（checkbox 勾選觸發 rerun）────────────────────────────────────
         SHOW_COLS = ['Coll. No.', 'Scientific Name', 'Common Name', 'Habit',
@@ -1440,8 +1489,7 @@ with st.container(border=True, key='records_panel'):
             key='records_df',
         )
 
-        # ── 選中列：填入 bar_slot（顯示在表格上方）────────────────────────────
-        sel_row = None
+        # ── 更新 session state；selection 有變化時 rerun 讓 bar 出現在表格上方 ──
         try:
             sel_idxs = list(event.selection.rows)
         except Exception:
@@ -1449,32 +1497,10 @@ with st.container(border=True, key='records_panel'):
                 sel_idxs = list(event.selection['rows'])
             except Exception:
                 sel_idxs = []
-        if sel_idxs and sel_idxs[0] < len(display_df):
-            sel_row = display_df.iloc[sel_idxs[0]]
-
-        if sel_row is not None:
-            sel_cno = int(sel_row.get('Coll. No.', 0) or 0)
-            sel_sci = sel_row.get('Scientific Name', '') or ''
-            with bar_slot.container():
-                # buttons above the bar, side by side
-                c_e, c_d, _ = st.columns([1, 1, 20])
-                with c_e:
-                    with st.container(key='edit_btn_icon'):
-                        if st.button('✎', key='btn_row_edit', help='帶入上方表單編輯'):
-                            enter_edit_mode(sel_row)
-                            st.rerun()
-                with c_d:
-                    with st.container(key='del_btn_icon'):
-                        if st.button('✕', key='btn_row_del', help='刪除此筆'):
-                            delete_record(int(sel_row['_row']))
-                            st.cache_data.clear()
-                            st.rerun()
-                st.markdown(
-                    f'<div class="sel-bar">'
-                    f'<span class="sel-bar-no">✓ 已選 #{sel_cno}</span>'
-                    f'<em class="sel-bar-sci">{sel_sci}</em>'
-                    f'</div>',
-                    unsafe_allow_html=True)
+        new_idx = sel_idxs[0] if (sel_idxs and sel_idxs[0] < len(display_df)) else None
+        if new_idx != stored_idx:
+            st.session_state['_sel_idx'] = new_idx
+            st.rerun()
 
     except Exception as e:
         st.warning(f'無法載入記錄：{e}')
