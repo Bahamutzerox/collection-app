@@ -384,6 +384,25 @@ code {
   box-shadow: 0 0 24px rgba(52,240,106,.5) !important;
 }
 </style>
+<script>
+(function applyPanelBorders() {
+  var GREEN = '#34f06a', GREEN_GLOW = '5px 5px 0 rgba(7,9,12,.6), 0 0 18px rgba(52,240,106,.25)';
+  var SLATE = '#9dbfcc', SLATE_GLOW = '5px 5px 0 rgba(7,9,12,.6), 0 0 14px rgba(157,191,204,.2)';
+  function update() {
+    document.querySelectorAll('.pix-panel-hdr').forEach(function(h) {
+      var w = h.closest('[data-testid="stVerticalBlockBorderWrapper"]');
+      if (!w) return;
+      var isSlate = h.classList.contains('slate');
+      w.style.setProperty('border-color', isSlate ? SLATE : GREEN, 'important');
+      w.style.setProperty('box-shadow', isSlate ? SLATE_GLOW : GREEN_GLOW, 'important');
+    });
+  }
+  update();
+  setTimeout(update, 300);
+  setTimeout(update, 1000);
+  new MutationObserver(update).observe(document.body, {childList:true, subtree:true});
+})();
+</script>
 """, unsafe_allow_html=True)
 
 # ── CRT background layers (flora + scanlines + vignette) ─────────────────────
