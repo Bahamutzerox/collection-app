@@ -856,8 +856,6 @@ def check_password():
             pw = st.text_input('密碼', type='password', label_visibility='collapsed',
                                placeholder='● ● ● ●')
             entered = st.form_submit_button('進入 →', type='primary', use_container_width=True)
-        st.markdown("<div class='login-hint'>DEMO · 輸入任意 4 碼以上即可進入</div>",
-                    unsafe_allow_html=True)
         if entered:
             if pw == st.secrets.get('app_password'):
                 st.session_state.auth_ok = True
