@@ -1436,10 +1436,10 @@ with st.container(border=True, key='records_panel'):
 
         N_SHOW = 12
         result_rev = result.iloc[::-1].reset_index(drop=True)
-        display_df = result_rev.head(N_SHOW)
+        display_df = result_rev if query else result_rev.head(N_SHOW)
 
         st.caption(
-            f'找到 {matched:,} 筆，顯示前 {N_SHOW} 筆' if query
+            f'找到 {matched:,} 筆，全部顯示' if query
             else f'共 {total:,} 筆，以下顯示最近 {N_SHOW} 筆'
         )
 
