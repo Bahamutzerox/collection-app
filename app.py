@@ -869,6 +869,7 @@ if not check_password():
 
 # ── Data layer: read & write CSVs in the private "data" GitHub repo via API ────
 @st.cache_resource
+@st.cache_resource
 def get_data_repo():
     from github import Github, Auth
     gh = Github(auth=Auth.Token(st.secrets['github_token']))
@@ -894,12 +895,22 @@ def _read_df(name):
 
 def _commit_df(name, df, message):
     """Push the DataFrame back to the data repo as CSV, then bust the read cache."""
+    import time
     csv_text = df.fillna('').astype(str).to_csv(index=False)
     repo = get_data_repo()
     gh_path = CSV_PATH[name]
-    cur = repo.get_contents(gh_path)
-    repo.update_file(gh_path, message, csv_text, cur.sha)
-    _read_csv_text.clear()
+    last_exc = None
+    for attempt in range(3):
+        try:
+            cur = repo.get_contents(gh_path)
+            repo.update_file(gh_path, message, csv_text, cur.sha)
+            _read_csv_text.clear()
+            return
+        except Exception as e:
+            last_exc = e
+            if attempt < 2:
+                time.sleep(1.5)
+    raise last_exc
 
 def split_locality(full):
     """Split a locality string on commas that sit OUTSIDE parentheses."""
@@ -1361,35 +1372,38 @@ if submit:
             'Note':                              note,
         }
 
-        is_new = sci_name not in sp_dict
-        existing_common = sp_dict.get(sci_name, {}).get('common', '')
-        if is_new or (final_common and final_common != existing_common):
-            upsert_species(sci_name, final_common, final_family)
-        is_new_loc = bool(loc_short) and loc_short not in loc_dict
-        if is_new_loc:
-            upsert_locality(loc_short, full_loc)
+        try:
+            is_new = sci_name not in sp_dict
+            existing_common = sp_dict.get(sci_name, {}).get('common', '')
+            if is_new or (final_common and final_common != existing_common):
+                upsert_species(sci_name, final_common, final_family)
+            is_new_loc = bool(loc_short) and loc_short not in loc_dict
+            if is_new_loc:
+                upsert_locality(loc_short, full_loc)
 
-        if edit_mode:
-            update_record(st.session_state.edit_row, values)
-            st.cache_data.clear()
-            st.success(f'已儲存修改：#{int(coll_no)} {sci_name}　{date_str}')
-            exit_edit_mode()
-            st.rerun()
-        else:
-            append_record(values)
-            st.cache_data.clear()
-            st.session_state.coll_no = int(coll_no) + 1
-            st.session_state.is_new_species = False
-            st.session_state.is_new_loc = False
-            st.session_state['_prev_sci'] = ''
-            st.session_state['_prev_loc'] = ''
-            st.session_state.fk += 1
-            notes = []
-            if is_new: notes.append('新學名已加入物種清單')
-            if is_new_loc: notes.append('新地名已加入地名清單')
-            label = '；'.join(notes) if notes else '已新增'
-            st.success(f'{label}：#{int(coll_no)} *{sci_name}*　@　{loc_short}　{date_str}')
-            st.balloons()
+            if edit_mode:
+                update_record(st.session_state.edit_row, values)
+                st.cache_data.clear()
+                st.success(f'已儲存修改：#{int(coll_no)} {sci_name}　{date_str}')
+                exit_edit_mode()
+                st.rerun()
+            else:
+                append_record(values)
+                st.cache_data.clear()
+                st.session_state.coll_no = int(coll_no) + 1
+                st.session_state.is_new_species = False
+                st.session_state.is_new_loc = False
+                st.session_state['_prev_sci'] = ''
+                st.session_state['_prev_loc'] = ''
+                st.session_state.fk += 1
+                notes = []
+                if is_new: notes.append('新學名已加入物種清單')
+                if is_new_loc: notes.append('新地名已加入地名清單')
+                label = '；'.join(notes) if notes else '已新增'
+                st.success(f'{label}：#{int(coll_no)} *{sci_name}*　@　{loc_short}　{date_str}')
+                st.balloons()
+        except Exception as _e:
+            st.error(f'儲存失敗，請再按一次「新增記錄」：{_e}')
 
 # ── Records panel ─────────────────────────────────────────────────────────────
 st.markdown('<div style="height:16px"></div>', unsafe_allow_html=True)
