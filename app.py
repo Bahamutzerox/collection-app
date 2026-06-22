@@ -1289,13 +1289,17 @@ with st.container(border=True, key='entry_panel'):
 
     # ── Species ───────────────────────────────────────────────────────────────
     section_label('物種')
+    # If previous run resolved a 中文名+sci combo, apply it before widget renders
+    _sci_pending_key = f'sci_pending_{fk}'
+    if _sci_pending_key in st.session_state:
+        st.session_state[f'sci_{fk}'] = st.session_state.pop(_sci_pending_key)
     _raw_sci = (st.selectbox('Scientific Name', sp_search_opts,
                               index=None, key=f'sci_{fk}',
                               placeholder='輸入屬名、種小名或中文名搜尋；清單中沒有可直接打字新增',
                               accept_new_options=True) or '').strip()
-    # If a "中文名　sci" entry was chosen, resolve to pure sci name and rerun
+    # If a "中文名　sci" entry was chosen, stage the resolved name and rerun
     if _raw_sci in sp_cn_map:
-        st.session_state[f'sci_{fk}'] = sp_cn_map[_raw_sci]
+        st.session_state[_sci_pending_key] = sp_cn_map[_raw_sci]
         st.rerun()
     sci_name = _raw_sci
     sync_species_fields()
