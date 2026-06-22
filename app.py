@@ -1037,6 +1037,8 @@ def update_record(idx: int, values: dict):
 sp_dict, loc_dict, collectors, last_no, families, counties, tw_by_county = load_lookups()
 loc_names = sorted(loc_dict.keys())
 sp_names = sorted(sp_dict.keys())
+sp_labels = {sci: f'{sci}　{info["common"]}' if info.get('common') else sci
+             for sci, info in sp_dict.items()}
 
 # ── Session state init ────────────────────────────────────────────────────────
 def init_state(last_no):
@@ -1277,7 +1279,8 @@ with st.container(border=True, key='entry_panel'):
     section_label('物種')
     sci_name = (st.selectbox('Scientific Name', sp_names,
                              index=None, key=f'sci_{fk}',
-                             placeholder='輸入屬名或種小名搜尋；清單中沒有可直接打字新增',
+                             placeholder='輸入屬名、種小名或中文名搜尋；清單中沒有可直接打字新增',
+                             format_func=lambda x: sp_labels.get(x, x),
                              accept_new_options=True) or '').strip()
     sync_species_fields()
 
