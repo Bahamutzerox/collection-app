@@ -1452,11 +1452,11 @@ with st.container(border=True, key='records_panel'):
             st.markdown(f"""
 <div style="display:flex;gap:14px;justify-content:flex-end;align-items:center;padding-top:20px;">
   <div style="text-align:left;">
-    <div style="font-family:var(--font-mono);font-size:8px;color:var(--muted);letter-spacing:.12em;margin-bottom:1px;">≡ 共計</div>
+    <div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);letter-spacing:.12em;margin-bottom:1px;">≡ 共計</div>
     <div style="font-family:var(--font-pixel);font-size:26px;color:var(--green);line-height:1;">{total:,}</div>
   </div>
   <div style="text-align:left;">
-    <div style="font-family:var(--font-mono);font-size:8px;color:var(--muted);letter-spacing:.12em;margin-bottom:1px;">◎ 符合</div>
+    <div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);letter-spacing:.12em;margin-bottom:1px;">◎ 符合</div>
     <div style="font-family:var(--font-pixel);font-size:26px;color:{matched_color};line-height:1;">{matched:,}</div>
   </div>
 </div>""", unsafe_allow_html=True)
