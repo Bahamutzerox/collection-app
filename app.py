@@ -1368,11 +1368,7 @@ with st.container(border=True, key='entry_panel'):
             st.rerun()
 
 if submit:
-    if not sci_name:
-        st.error('請填入 Scientific Name')
-    elif not full_loc:
-        st.error('請填入完整地名')
-    else:
+    if True:
         final_family = family
         final_common = common.strip()
         values = {
