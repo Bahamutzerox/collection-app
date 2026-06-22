@@ -1057,6 +1057,10 @@ def init_state(last_no):
 init_state(last_no)
 fk = st.session_state.fk  # shorthand
 
+if '_flash' in st.session_state:
+    st.success(st.session_state.pop('_flash'))
+    st.balloons()
+
 # ── Callbacks ─────────────────────────────────────────────────────────────────
 def sync_locality_field():
     """Updates full locality when 地名簡稱 changes."""
@@ -1403,8 +1407,8 @@ if submit:
                 if is_new: notes.append('新學名已加入物種清單')
                 if is_new_loc: notes.append('新地名已加入地名清單')
                 label = '；'.join(notes) if notes else '已新增'
-                st.success(f'{label}：#{int(coll_no)} *{sci_name}*　@　{loc_short}　{date_str}')
-                st.balloons()
+                st.session_state['_flash'] = f'{label}：#{int(coll_no)} *{sci_name}*　@　{loc_short}　{date_str}'
+                st.rerun()
         except Exception as _e:
             st.error(f'儲存失敗，請再按一次「新增記錄」：{_e}')
 
