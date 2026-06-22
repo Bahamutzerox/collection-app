@@ -1037,8 +1037,16 @@ def update_record(idx: int, values: dict):
 sp_dict, loc_dict, collectors, last_no, families, counties, tw_by_county = load_lookups()
 loc_names = sorted(loc_dict.keys())
 sp_names = sorted(sp_dict.keys())
-sp_labels = {sci: f'{sci}　{info["common"]}' if info.get('common') else sci
-             for sci, info in sp_dict.items()}
+# Chinese-name search entries: "中文名　sci" → sci
+sp_cn_map = {}
+_sp_search = list(sp_names)
+for _sci, _info in sp_dict.items():
+    _cn = (_info.get('common') or '').strip()
+    if _cn:
+        _key = f'{_cn}　{_sci}'
+        sp_cn_map[_key] = _sci
+        _sp_search.append(_key)
+sp_search_opts = sorted(_sp_search)
 
 # ── Session state init ────────────────────────────────────────────────────────
 def init_state(last_no):
@@ -1281,11 +1289,15 @@ with st.container(border=True, key='entry_panel'):
 
     # ── Species ───────────────────────────────────────────────────────────────
     section_label('物種')
-    sci_name = (st.selectbox('Scientific Name', sp_names,
-                             index=None, key=f'sci_{fk}',
-                             placeholder='輸入屬名、種小名或中文名搜尋；清單中沒有可直接打字新增',
-                             format_func=lambda x: sp_labels.get(x, x),
-                             accept_new_options=True) or '').strip()
+    _raw_sci = (st.selectbox('Scientific Name', sp_search_opts,
+                              index=None, key=f'sci_{fk}',
+                              placeholder='輸入屬名、種小名或中文名搜尋；清單中沒有可直接打字新增',
+                              accept_new_options=True) or '').strip()
+    # If a "中文名　sci" entry was chosen, resolve to pure sci name and rerun
+    if _raw_sci in sp_cn_map:
+        st.session_state[f'sci_{fk}'] = sp_cn_map[_raw_sci]
+        st.rerun()
+    sci_name = _raw_sci
     sync_species_fields()
 
     if st.session_state.is_new_species:
