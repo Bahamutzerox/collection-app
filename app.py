@@ -1450,7 +1450,7 @@ with st.container(border=True, key='records_panel'):
         matched_color = 'var(--slate)' if matched == total else 'var(--green)'
         with col_stats:
             st.markdown(f"""
-<div style="display:flex;gap:14px;justify-content:flex-end;align-items:center;padding-top:12px;">
+<div style="display:flex;gap:14px;justify-content:flex-end;align-items:center;padding-top:20px;">
   <div style="text-align:left;">
     <div style="font-family:var(--font-mono);font-size:8px;color:var(--muted);letter-spacing:.12em;margin-bottom:1px;">≡ 共計</div>
     <div style="font-family:var(--font-pixel);font-size:26px;color:var(--green);line-height:1;">{total:,}</div>
