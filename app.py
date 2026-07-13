@@ -869,7 +869,6 @@ if not check_password():
 
 # ── Data layer: read & write CSVs in the private "data" GitHub repo via API ────
 @st.cache_resource
-@st.cache_resource
 def get_data_repo():
     from github import Github, Auth
     gh = Github(auth=Auth.Token(st.secrets['github_token']))
