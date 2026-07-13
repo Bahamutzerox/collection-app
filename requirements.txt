@@ -1,3 +1,5 @@
-streamlit>=1.40
-pandas>=2.0
+streamlit==1.58.0
+pandas==2.2.3
+numpy==1.26.4
+pyarrow==16.1.0
 PyGithub>=2.0
