@@ -1005,7 +1005,10 @@ def load_lookups():
 
 def load_all_records():
     """All records with a 0-based positional id (_row) used for edit/delete."""
-    df = _read_df(WS_RECORDS)
+    # Use _raw_df (empty cells stay '' rather than NA); the records panel reads
+    # raw cell values in boolean context (e.g. `x or ''`), and `NA or ''` raises
+    # "boolean value of NA is ambiguous".
+    df = _raw_df(WS_RECORDS)
     if df.empty:
         return df
     df.insert(0, '_row', range(len(df)))
