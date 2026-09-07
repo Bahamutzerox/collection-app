@@ -1067,6 +1067,48 @@ def init_state(last_no):
 init_state(last_no)
 fk = st.session_state.fk  # shorthand
 
+def apply_carry():
+    """Seed the fresh (post-add) form with the previous entry's collection data
+    — everything EXCEPT the species block (學名/科名/中文名/Habit) and Note —
+    so consecutive specimens from the same spot don't need re-typing.
+    Runs once after a successful add (the submit handler stores '_carry')."""
+    c = st.session_state.pop('_carry', None)
+    if not c:
+        return
+    n = st.session_state.fk
+    loc = c.get('loc_short') or ''
+    cty = c.get('county') or ''
+    tw  = c.get('township') or ''
+    coll = c.get('collector') or ''
+    # Ensure carried values are valid selectbox options (a just-typed collector
+    # isn't written to 採集人清單, so it wouldn't otherwise be in the list).
+    if loc and loc not in loc_names:      loc_names.append(loc)
+    if cty and cty not in counties:       counties.append(cty)
+    if cty and tw:
+        opts = tw_by_county.setdefault(cty, [])
+        if tw not in opts:                opts.append(tw)
+    if coll and coll not in collectors:   collectors.append(coll)
+    # Seed widget state for the new form key
+    st.session_state[f'loc_{n}']       = loc or None
+    st.session_state['_prev_loc']      = loc
+    st.session_state['is_new_loc']     = False
+    st.session_state[f'county_{n}']    = cty or None
+    st.session_state[f'tw_{n}']        = tw or None
+    st.session_state[f'place_en_{n}']  = c.get('place_en', '')
+    st.session_state[f'county_en_{n}'] = c.get('county_en', '')
+    st.session_state[f'tw_en_{n}']     = c.get('tw_en', '')
+    st.session_state[f'fullloc_{n}']   = c.get('full_loc', '')
+    if c.get('day'):   st.session_state[f'day_{n}']   = c['day']
+    if c.get('month'): st.session_state[f'month_{n}'] = c['month']
+    if c.get('year'):  st.session_state[f'year_{n}']  = c['year']
+    st.session_state[f'gpsn_{n}']      = c.get('gpsn', '')
+    st.session_state[f'gpse_{n}']      = c.get('gpse', '')
+    st.session_state[f'alt_{n}']       = c.get('altitude', '')
+    st.session_state[f'coll_{n}']      = coll or None
+    st.session_state[f'ident_{n}']     = c.get('identifier', '')
+
+apply_carry()
+
 if '_flash' in st.session_state:
     st.success(st.session_state.pop('_flash'))
     st.balloons()
@@ -1416,6 +1458,15 @@ if submit:
                 st.session_state.is_new_loc = False
                 st.session_state['_prev_sci'] = ''
                 st.session_state['_prev_loc'] = ''
+                # Carry the non-species collection data into the next blank form.
+                st.session_state['_carry'] = {
+                    'loc_short': loc_short, 'county': county, 'township': township,
+                    'place_en': place_en, 'county_en': county_en, 'tw_en': township_en,
+                    'full_loc': full_loc,
+                    'day': int(day), 'month': month, 'year': int(year),
+                    'gpsn': gpsn, 'gpse': gpse, 'altitude': altitude,
+                    'collector': collector, 'identifier': identifier,
+                }
                 st.session_state.fk += 1
                 notes = []
                 if is_new: notes.append('新學名已加入物種清單')
