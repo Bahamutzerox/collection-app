@@ -1277,12 +1277,17 @@ with st.container(border=True, key='entry_panel'):
     # ── Locality ──────────────────────────────────────────────────────────────
     section_label('採集地點')
 
-    def has_en(s): return '(' in str(s)
     def combine(cn, en):
+        # Append the English the user typed whenever it's given (and not already
+        # inside cn). Don't skip just because cn contains a '(' — the Chinese
+        # name itself may carry a parenthetical note, e.g. 產業道路 (宇老-登山口).
         cn = (cn or '').strip()
-        if not cn or has_en(cn): return cn
         en = (en or '').strip()
-        return f'{cn} ({en})' if en else cn
+        if not cn:
+            return cn
+        if en and en not in cn:
+            return f'{cn} ({en})'
+        return cn
 
     # Row 1: 地名簡稱 | 縣市 | 鄉鎮（永遠顯示）
     lc1, lc2, lc3 = st.columns(3)
