@@ -995,12 +995,13 @@ def load_lookups():
             tw_by_county[disp] = sorted(exist_tw_by_county[ck])
 
     main = _read_df(WS_RECORDS)
-    nos = main['Coll. No.'].dropna() if 'Coll. No.' in main.columns else pd.Series(dtype=str)
-    last_no = nos.iloc[-1] if not nos.empty else 0
-    try:
-        last_no = int(float(last_no))
-    except (ValueError, TypeError):
-        last_no = 0
+    # Next number = highest existing Coll. No. + 1 (not the last physical row),
+    # so inserting/back-filling a skipped number never causes a collision.
+    last_no = 0
+    if 'Coll. No.' in main.columns:
+        nums = pd.to_numeric(main['Coll. No.'], errors='coerce').dropna()
+        if not nums.empty:
+            last_no = int(nums.max())
     return sp_dict, loc_dict, collectors, last_no, families, counties, tw_by_county
 
 def load_all_records():
@@ -1519,12 +1520,19 @@ with st.container(border=True, key='records_panel'):
 </div>""", unsafe_allow_html=True)
 
         N_SHOW = 12
-        result_rev = result.iloc[::-1].reset_index(drop=True)
+        # Sort by Coll. No. descending (blank/non-numeric go last) so records
+        # always read in number order regardless of physical row order.
+        _sort_key = pd.to_numeric(result['Coll. No.'], errors='coerce')
+        result_rev = (result.assign(_no=_sort_key)
+                            .sort_values('_no', ascending=False,
+                                         kind='stable', na_position='last')
+                            .drop(columns='_no')
+                            .reset_index(drop=True))
         display_df = result_rev if query else result_rev.head(N_SHOW)
 
         st.caption(
             f'找到 {matched:,} 筆' if query
-            else f'共 {total:,} 筆，以下顯示最近 {N_SHOW} 筆'
+            else f'共 {total:,} 筆，以下顯示編號最大的 {N_SHOW} 筆'
         )
 
         # ── action bar（session state → 渲染在表格上方）────────────────────
